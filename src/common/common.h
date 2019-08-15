@@ -18,6 +18,8 @@ extern "C" {
 #define MEM_BASE                    (0x00800000)
 #endif
 
+#define HBL_TEMP_RPX_PATH           "fs:/vol/external01/wiiu/apps/homebrew_launcher/temp"
+#define HBL_TEMP_RPX_FILE           "fs:/vol/external01/wiiu/apps/homebrew_launcher/temp/temp.rpx"
 
 #define ELF_DATA_ADDR               (*(volatile unsigned int*)(MEM_BASE + 0x1300 + 0x00))
 #define ELF_DATA_SIZE               (*(volatile unsigned int*)(MEM_BASE + 0x1300 + 0x04))

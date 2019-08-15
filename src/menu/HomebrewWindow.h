@@ -21,8 +21,7 @@
 #include "gui/GuiFrame.h"
 #include "TcpReceiver.h"
 
-class HomebrewWindow : public GuiFrame, public sigslot::has_slots<>
-{
+class HomebrewWindow : public GuiFrame, public sigslot::has_slots<> {
 public:
     HomebrewWindow(int w, int h);
     virtual ~HomebrewWindow();
@@ -38,8 +37,8 @@ private:
     void OnRightArrowClick(GuiButton *button, const GuiController *controller, GuiTrigger *trigger);
 
     void OnCloseTcpReceiverFinish(GuiElement *element);
-    void OnTcpReceiveStart(GuiElement *element, u32 ip);
-    void OnTcpReceiveFinish(GuiElement *element, u32 ip, int result);
+    void OnTcpReceiveStart(GuiElement *element, uint32_t ip);
+    void OnTcpReceiveFinish(GuiElement *element, uint32_t ip, int result);
 
     GuiSound *buttonClickSound;
     GuiImageData * homebrewButtonImgData;
@@ -52,8 +51,7 @@ private:
     GuiButton arrowLeftButton;
     GuiText hblVersionText;
 
-    typedef struct
-    {
+    typedef struct {
         std::string execPath;
         GuiImage *image;
         GuiButton *button;

@@ -22,3 +22,6 @@
 /NUSPacker.jar
 /fst.bin
 /channel/code/*.rpx
+www/
+*.exe
+*.cbp

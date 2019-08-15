@@ -18,11 +18,14 @@
 #include "common/common.h"
 #include "Application.h"
 #include "fs/DirList.h"
-#include "fs/fs_utils.h"
+#include "fs/FSUtils.h"
 #include "system/AsyncDeleter.h"
 #include "utils/HomebrewXML.h"
 #include "utils/utils.h"
+#include "utils/logger.h"
 #include "HomebrewLaunchWindow.h"
+#include "HomebrewLoader.h"
+#include <sysapp/launch.h>
 
 #define DEFAULT_WIILOAD_PORT        4299
 
@@ -43,8 +46,7 @@ HomebrewWindow::HomebrewWindow(int w, int h)
     , wpadTouchTrigger(GuiTrigger::CHANNEL_2 | GuiTrigger::CHANNEL_3 | GuiTrigger::CHANNEL_4 | GuiTrigger::CHANNEL_5, GuiTrigger::BUTTON_A)
     , buttonLTrigger(GuiTrigger::CHANNEL_ALL, GuiTrigger::BUTTON_L | GuiTrigger::BUTTON_LEFT, true)
     , buttonRTrigger(GuiTrigger::CHANNEL_ALL, GuiTrigger::BUTTON_R | GuiTrigger::BUTTON_RIGHT, true)
-    , tcpReceiver(DEFAULT_WIILOAD_PORT)
-{
+    , tcpReceiver(DEFAULT_WIILOAD_PORT) {
     tcpReceiver.serverReceiveStart.connect(this, &HomebrewWindow::OnTcpReceiveStart);
     tcpReceiver.serverReceiveFinished.connect(this, &HomebrewWindow::OnTcpReceiveFinish);
 
@@ -52,15 +54,18 @@ HomebrewWindow::HomebrewWindow(int w, int h)
     currentLeftPosition = 0;
     listOffset = 0;
 
-    DirList dirList("fs:/vol/external01/wiiu/apps", ".elf,.rpx", DirList::Files | DirList::CheckSubfolders, 1);
+    DirList dirList("fs:/vol/external01/wiiu/apps", ".rpx", DirList::Files | DirList::CheckSubfolders, 1);
 
     dirList.SortList();
 
-    for(int i = 0; i < dirList.GetFilecount(); i++)
-    {
+    for(int i = 0; i < dirList.GetFilecount(); i++) {
         //! skip our own application in the listing
         if(strcasecmp(dirList.GetFilename(i), "homebrew_launcher.elf") == 0)
             continue;
+        //! skip our own application in the listing
+        if(strcasecmp(dirList.GetFilename(i), "homebrew_launcher.rpx") == 0)
+            continue;
+
 
         //! skip hidden linux and mac files
         if(dirList.GetFilename(i)[0] == '.' || dirList.GetFilename(i)[0] == '_')
@@ -79,13 +84,12 @@ HomebrewWindow::HomebrewWindow(int w, int h)
         if(slashPos != std::string::npos)
             homebrewPath.erase(slashPos);
 
-        u8 * iconData = NULL;
-        u32 iconDataSize = 0;
+        uint8_t * iconData = NULL;
+        uint32_t iconDataSize = 0;
 
-        LoadFileToMem((homebrewPath + "/icon.png").c_str(), &iconData, &iconDataSize);
+        FSUtils::LoadFileToMem((homebrewPath + "/icon.png").c_str(), &iconData, &iconDataSize);
 
-        if(iconData != NULL)
-        {
+        if(iconData != NULL) {
             homebrewButtons[idx].iconImgData = new GuiImageData(iconData, iconDataSize);
             free(iconData);
             iconData = NULL;
@@ -106,7 +110,7 @@ HomebrewWindow::HomebrewWindow(int w, int h)
         const char *cpDescription = xmlReadSuccess ? metaXml.GetShortDescription() : "";
 
         if(strncmp(cpName, "fs:/vol/external01/wiiu/apps/", strlen("fs:/vol/external01/wiiu/apps/")) == 0)
-           cpName += strlen("fs:/vol/external01/wiiu/apps/");
+            cpName += strlen("fs:/vol/external01/wiiu/apps/");
 
         homebrewButtons[idx].nameLabel = new GuiText(cpName, 32, glm::vec4(1.0f));
         homebrewButtons[idx].nameLabel->setAlignment(ALIGN_LEFT | ALIGN_MIDDLE);
@@ -137,8 +141,7 @@ HomebrewWindow::HomebrewWindow(int w, int h)
     }
 
 
-    if((MAX_BUTTONS_ON_PAGE) < homebrewButtons.size())
-    {
+    if((MAX_BUTTONS_ON_PAGE) < homebrewButtons.size()) {
         arrowLeftButton.setImage(&arrowLeftImage);
         arrowLeftButton.setEffectGrow();
         arrowLeftButton.setPosition(40, 0);
@@ -166,10 +169,8 @@ HomebrewWindow::HomebrewWindow(int w, int h)
     append(&hblVersionText);
 }
 
-HomebrewWindow::~HomebrewWindow()
-{
-    for(u32 i = 0; i < homebrewButtons.size(); ++i)
-    {
+HomebrewWindow::~HomebrewWindow() {
+    for(uint32_t i = 0; i < homebrewButtons.size(); ++i) {
         delete homebrewButtons[i].image;
         delete homebrewButtons[i].nameLabel;
         delete homebrewButtons[i].descriptionLabel;
@@ -184,40 +185,33 @@ HomebrewWindow::~HomebrewWindow()
     Resources::RemoveImageData(arrowLeftImageData);
 }
 
-void HomebrewWindow::OnOpenEffectFinish(GuiElement *element)
-{
+void HomebrewWindow::OnOpenEffectFinish(GuiElement *element) {
     //! once the menu is open reset its state and allow it to be "clicked/hold"
     element->effectFinished.disconnect(this);
     element->clearState(GuiElement::STATE_DISABLED);
 }
 
-void HomebrewWindow::OnCloseEffectFinish(GuiElement *element)
-{
+void HomebrewWindow::OnCloseEffectFinish(GuiElement *element) {
     //! remove element from draw list and push to delete queue
     remove(element);
     AsyncDeleter::pushForDelete(element);
 
-    for(u32 i = 0; i < homebrewButtons.size(); i++)
-    {
+    for(uint32_t i = 0; i < homebrewButtons.size(); i++) {
         homebrewButtons[i].button->clearState(GuiElement::STATE_DISABLED);
     }
 }
 
-void HomebrewWindow::OnLaunchBoxCloseClick(GuiElement *element)
-{
+void HomebrewWindow::OnLaunchBoxCloseClick(GuiElement *element) {
     element->setState(GuiElement::STATE_DISABLED);
     element->setEffect(EFFECT_FADE, -10, 0);
     element->effectFinished.connect(this, &HomebrewWindow::OnCloseEffectFinish);
 }
 
-void HomebrewWindow::OnHomebrewButtonClick(GuiButton *button, const GuiController *controller, GuiTrigger *trigger)
-{
+void HomebrewWindow::OnHomebrewButtonClick(GuiButton *button, const GuiController *controller, GuiTrigger *trigger) {
     bool disableButtons = false;
 
-    for(u32 i = 0; i < homebrewButtons.size(); i++)
-    {
-        if(button == homebrewButtons[i].button)
-        {
+    for(uint32_t i = 0; i < homebrewButtons.size(); i++) {
+        if(button == homebrewButtons[i].button) {
             HomebrewLaunchWindow * launchBox = new HomebrewLaunchWindow(homebrewButtons[i].execPath, homebrewButtons[i].iconImgData);
             launchBox->setEffect(EFFECT_FADE, 10, 255);
             launchBox->setState(GuiElement::STATE_DISABLED);
@@ -231,19 +225,15 @@ void HomebrewWindow::OnHomebrewButtonClick(GuiButton *button, const GuiControlle
     }
 
 
-    if(disableButtons)
-    {
-        for(u32 i = 0; i < homebrewButtons.size(); i++)
-        {
+    if(disableButtons) {
+        for(uint32_t i = 0; i < homebrewButtons.size(); i++) {
             homebrewButtons[i].button->setState(GuiElement::STATE_DISABLED);
         }
     }
 }
 
-void HomebrewWindow::OnLeftArrowClick(GuiButton *button, const GuiController *controller, GuiTrigger *trigger)
-{
-    if(listOffset > 0)
-    {
+void HomebrewWindow::OnLeftArrowClick(GuiButton *button, const GuiController *controller, GuiTrigger *trigger) {
+    if(listOffset > 0) {
         listOffset--;
         targetLeftPosition = -listOffset * getWidth();
 
@@ -253,10 +243,8 @@ void HomebrewWindow::OnLeftArrowClick(GuiButton *button, const GuiController *co
     }
 }
 
-void HomebrewWindow::OnRightArrowClick(GuiButton *button, const GuiController *controller, GuiTrigger *trigger)
-{
-    if((listOffset * MAX_BUTTONS_ON_PAGE) < (int)homebrewButtons.size())
-    {
+void HomebrewWindow::OnRightArrowClick(GuiButton *button, const GuiController *controller, GuiTrigger *trigger) {
+    if((listOffset * MAX_BUTTONS_ON_PAGE) < (int)homebrewButtons.size()) {
         listOffset++;
         targetLeftPosition = -listOffset * getWidth();
 
@@ -267,21 +255,17 @@ void HomebrewWindow::OnRightArrowClick(GuiButton *button, const GuiController *c
     }
 }
 
-void HomebrewWindow::draw(CVideo *pVideo)
-{
+void HomebrewWindow::draw(CVideo *pVideo) {
     bool bUpdatePositions = false;
 
-    if(currentLeftPosition < targetLeftPosition)
-    {
+    if(currentLeftPosition < targetLeftPosition) {
         currentLeftPosition += 35;
 
         if(currentLeftPosition > targetLeftPosition)
             currentLeftPosition = targetLeftPosition;
 
         bUpdatePositions = true;
-    }
-    else if(currentLeftPosition > targetLeftPosition)
-    {
+    } else if(currentLeftPosition > targetLeftPosition) {
         currentLeftPosition -= 35;
 
         if(currentLeftPosition < targetLeftPosition)
@@ -290,12 +274,10 @@ void HomebrewWindow::draw(CVideo *pVideo)
         bUpdatePositions = true;
     }
 
-    if(bUpdatePositions)
-    {
+    if(bUpdatePositions) {
         bUpdatePositions = false;
 
-        for(u32 i = 0; i < homebrewButtons.size(); i++)
-        {
+        for(uint32_t i = 0; i < homebrewButtons.size(); i++) {
             float fXOffset = (i / MAX_BUTTONS_ON_PAGE) * getWidth();
             float fYOffset = (homebrewButtons[i].image->getHeight() + 20.0f) * 1.5f - (homebrewButtons[i].image->getHeight() + 20) * (i % MAX_BUTTONS_ON_PAGE);
             homebrewButtons[i].button->setPosition(currentLeftPosition + fXOffset, fYOffset);
@@ -305,30 +287,29 @@ void HomebrewWindow::draw(CVideo *pVideo)
     GuiFrame::draw(pVideo);
 }
 
-void HomebrewWindow::OnCloseTcpReceiverFinish(GuiElement *element)
-{
+void HomebrewWindow::OnCloseTcpReceiverFinish(GuiElement *element) {
     //! remove element from draw list and push to delete queue
     remove(element);
     clearState(STATE_DISABLED);
 }
 
-void HomebrewWindow::OnTcpReceiveStart(GuiElement *element, u32 ip)
-{
+void HomebrewWindow::OnTcpReceiveStart(GuiElement *element, uint32_t ip) {
     element->setEffect(EFFECT_FADE, 15, 255);
     element->effectFinished.connect(this, &HomebrewWindow::OnOpenEffectFinish);
     append(element);
 }
 
-void HomebrewWindow::OnTcpReceiveFinish(GuiElement *element, u32 ip, int result)
-{
+void HomebrewWindow::OnTcpReceiveFinish(GuiElement *element, uint32_t ip, int result) {
     element->setState(GuiElement::STATE_DISABLED);
     element->setEffect(EFFECT_FADE, -10, 0);
     element->effectFinished.connect(this, &HomebrewWindow::OnCloseTcpReceiverFinish);
 
-    if(result > 0)
-    {
-        log_printf("Launching homebrew, loaded to address %08X size %08X\n", ELF_DATA_ADDR, ELF_DATA_SIZE);
-        Application::instance()->quit(EXIT_SUCCESS);
+    if(result >= 0) {
+        if(HomebrewLoader::loadToMemory(HBL_TEMP_RPX_FILE) > 0) {
+            SYSRelaunchTitle(0,NULL);
+        }
+    } else {
+        DEBUG_FUNCTION_LINE("TCP loading failed with error code %d\n", result);
     }
 }
 

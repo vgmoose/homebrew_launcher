@@ -6,8 +6,7 @@
 
 static volatile uint8_t ucRunOnce = 0;
 
-int main(int argc, char **argv)
-{
+int main(int argc, char **argv) {
     //! *******************************************************************
     //! *                 Jump to our application                    *
     //! *******************************************************************

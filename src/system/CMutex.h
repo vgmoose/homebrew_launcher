@@ -20,8 +20,7 @@
 #include <malloc.h>
 #include <coreinit/mutex.h>
 
-class CMutex
-{
+class CMutex {
 public:
     CMutex() {
         pMutex = (OSMutex*) malloc(sizeof(OSMutex));
@@ -53,8 +52,7 @@ private:
     OSMutex *pMutex;
 };
 
-class CMutexLock
-{
+class CMutexLock {
 public:
     CMutexLock() {
         mutex.lock();

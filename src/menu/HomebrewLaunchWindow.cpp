@@ -18,10 +18,13 @@
 #include "HomebrewLoader.h"
 #include "common/common.h"
 #include "fs/DirList.h"
-#include "fs/fs_utils.h"
+#include "fs/FSUtils.h"
 #include "utils/HomebrewXML.h"
 #include "utils/utils.h"
 #include "Application.h"
+
+#include <sysapp/launch.h>
+
 
 HomebrewLaunchWindow::HomebrewLaunchWindow(const std::string & launchPath, GuiImageData * iconImgData)
     : GuiFrame(0, 0)
@@ -44,8 +47,7 @@ HomebrewLaunchWindow::HomebrewLaunchWindow(const std::string & launchPath, GuiIm
     , backBtn(backImg.getWidth(), backImg.getHeight())
     , touchTrigger(GuiTrigger::CHANNEL_1, GuiTrigger::VPAD_TOUCH)
     , wpadTouchTrigger(GuiTrigger::CHANNEL_2 | GuiTrigger::CHANNEL_3 | GuiTrigger::CHANNEL_4 | GuiTrigger::CHANNEL_5, GuiTrigger::BUTTON_A)
-    , homebrewLaunchPath(launchPath)
-{
+    , homebrewLaunchPath(launchPath) {
     width = backgroundImg.getWidth();
     height = backgroundImg.getHeight();
     append(&backgroundImg);
@@ -63,7 +65,7 @@ HomebrewLaunchWindow::HomebrewLaunchWindow(const std::string & launchPath, GuiIm
 
     const char *cpName = xmlReadSuccess ? metaXml.GetName() : launchPath.c_str();
     if(strncmp(cpName, "fs:/wiiu/apps/", strlen("fs:/wiiu/apps/")) == 0)
-       cpName += strlen("fs:/wiiu/apps/");
+        cpName += strlen("fs:/wiiu/apps/");
 
     titleText.setText(cpName);
     titleText.setAlignment(ALIGN_CENTER | ALIGN_MIDDLE);
@@ -135,22 +137,19 @@ HomebrewLaunchWindow::HomebrewLaunchWindow(const std::string & launchPath, GuiIm
     append(&backBtn);
 }
 
-HomebrewLaunchWindow::~HomebrewLaunchWindow()
-{
+HomebrewLaunchWindow::~HomebrewLaunchWindow() {
     Resources::RemoveSound(buttonClickSound);
     Resources::RemoveImageData(backgroundImgData);
     Resources::RemoveImageData(buttonImgData);
 }
 
-void HomebrewLaunchWindow::OnOpenEffectFinish(GuiElement *element)
-{
+void HomebrewLaunchWindow::OnOpenEffectFinish(GuiElement *element) {
     //! once the menu is open reset its state and allow it to be "clicked/hold"
     element->effectFinished.disconnect(this);
     element->clearState(GuiElement::STATE_DISABLED);
 }
 
-void HomebrewLaunchWindow::OnCloseEffectFinish(GuiElement *element)
-{
+void HomebrewLaunchWindow::OnCloseEffectFinish(GuiElement *element) {
     //! remove element from draw list and push to delete queue
     remove(element);
     AsyncDeleter::pushForDelete(element);
@@ -159,21 +158,19 @@ void HomebrewLaunchWindow::OnCloseEffectFinish(GuiElement *element)
     loadBtn.clearState(GuiElement::STATE_DISABLED);
 }
 
-void HomebrewLaunchWindow::OnFileLoadFinish(GuiElement *element, const std::string & filepath, int result)
-{
+void HomebrewLaunchWindow::OnFileLoadFinish(GuiElement *element, const std::string & filepath, int result) {
     element->setState(GuiElement::STATE_DISABLED);
-    element->setEffect(EFFECT_FADE, -10, 0);
+    //element->setEffect(EFFECT_FADE, -10, 0);
     element->effectFinished.connect(this, &HomebrewLaunchWindow::OnCloseEffectFinish);
 
-    if(result > 0)
-    {
-        Application::instance()->quit(EXIT_SUCCESS);
+    if(result > 0) {
+        SYSRelaunchTitle(0,NULL);
+        //Application::instance()->quit(EXIT_SUCCESS);
     }
 }
 
 
-void HomebrewLaunchWindow::OnLoadButtonClick(GuiButton *button, const GuiController *controller, GuiTrigger *trigger)
-{
+void HomebrewLaunchWindow::OnLoadButtonClick(GuiButton *button, const GuiController *controller, GuiTrigger *trigger) {
     backBtn.setState(GuiElement::STATE_DISABLED);
     loadBtn.setState(GuiElement::STATE_DISABLED);
 

@@ -21,24 +21,20 @@
 #include "CThread.h"
 #include "CMutex.h"
 
-class AsyncDeleter : public CThread
-{
+class AsyncDeleter : public CThread {
 public:
-    static void destroyInstance()
-    {
+    static void destroyInstance() {
         delete deleterInstance;
         deleterInstance = NULL;
     }
 
-    class Element
-    {
+    class Element {
     public:
         Element() {}
         virtual ~Element() {}
     };
 
-    static void pushForDelete(AsyncDeleter::Element *e)
-    {
+    static void pushForDelete(AsyncDeleter::Element *e) {
         if(!deleterInstance)
             deleterInstance = new AsyncDeleter;
 

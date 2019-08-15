@@ -15,15 +15,18 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  ****************************************************************************/
 #include "ProgressWindow.h"
-#include "video/CVideo.h"
+#include <gui/video/CVideo.h>
 
 ProgressWindow::ProgressWindow(const std::string & title)
     : GuiFrame(0, 0)
     , bgImageData(Resources::GetImageData("progressWindow.png"))
     , bgImage(bgImageData)
-    , progressImageBlack(bgImage.getWidth(), bgImage.getHeight()/2, (GX2Color){0, 0, 0, 255})
-    , progressImageColored(bgImage.getWidth(), bgImage.getHeight()/2, (GX2Color){0, 0, 0, 255})
-{
+    , progressImageBlack(bgImage.getWidth(), bgImage.getHeight()/2, (GX2Color) {
+    0, 0, 0, 255
+})
+, progressImageColored(bgImage.getWidth(), bgImage.getHeight()/2, (GX2Color) {
+    0, 0, 0, 255
+}) {
     titleChanged = false;
     currentTitle = title;
     width = bgImage.getWidth();
@@ -34,10 +37,18 @@ ProgressWindow::ProgressWindow(const std::string & title)
     append(&bgImage);
 
     progressImageColored.setAlignment(ALIGN_TOP_LEFT);
-    progressImageColored.setImageColor((GX2Color){ 42, 159, 217, 255}, 0);
-    progressImageColored.setImageColor((GX2Color){ 42, 159, 217, 255}, 1);
-    progressImageColored.setImageColor((GX2Color){ 13, 104, 133, 255}, 2);
-    progressImageColored.setImageColor((GX2Color){ 13, 104, 133, 255}, 3);
+    progressImageColored.setImageColor((GX2Color) {
+        42, 159, 217, 255
+    }, 0);
+    progressImageColored.setImageColor((GX2Color) {
+        42, 159, 217, 255
+    }, 1);
+    progressImageColored.setImageColor((GX2Color) {
+        13, 104, 133, 255
+    }, 2);
+    progressImageColored.setImageColor((GX2Color) {
+        13, 104, 133, 255
+    }, 3);
 
     titleText.setColor(glm::vec4(1.0f, 1.0f, 1.0f, 1.0f));
     titleText.setFontSize(36);
@@ -53,28 +64,23 @@ ProgressWindow::ProgressWindow(const std::string & title)
     setProgress(0.0f);
 }
 
-ProgressWindow::~ProgressWindow()
-{
+ProgressWindow::~ProgressWindow() {
     Resources::RemoveImageData(bgImageData);
 }
 
-void ProgressWindow::setTitle(const std::string & title)
-{
+void ProgressWindow::setTitle(const std::string & title) {
     titleMutex.lock();
     currentTitle = title;
     titleChanged = true;
     titleMutex.unlock();
 }
 
-void ProgressWindow::setProgress(f32 percent)
-{
+void ProgressWindow::setProgress(float percent) {
     progressImageColored.setSize(percent * 0.01f * progressImageBlack.getWidth(), progressImageColored.getHeight());
 }
 
-void ProgressWindow::draw(CVideo * v)
-{
-    if(titleChanged)
-    {
+void ProgressWindow::draw(CVideo * v) {
+    if(titleChanged) {
         titleMutex.lock();
         titleChanged = false;
         titleText.setText(currentTitle.c_str());

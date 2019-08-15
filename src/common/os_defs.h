@@ -5,8 +5,7 @@
 extern "C" {
 #endif
 
-typedef struct _OsSpecifics
-{
+typedef struct _OsSpecifics {
     unsigned int addr_OSDynLoad_Acquire;
     unsigned int addr_OSDynLoad_FindExport;
     unsigned int addr_OSTitle_main_entry;
@@ -26,8 +25,7 @@ typedef struct _OsSpecifics
     unsigned int orig_LiWaitOneChunkInstr;
 } OsSpecifics;
 
-typedef struct _s_mem_area
-{
+typedef struct _s_mem_area {
     unsigned int        address;
     unsigned int        size;
     struct _s_mem_area* next;

@@ -19,13 +19,12 @@
 
 #include "gui/Gui.h"
 
-class ProgressWindow : public GuiFrame, public sigslot::has_slots<>
-{
+class ProgressWindow : public GuiFrame, public sigslot::has_slots<> {
 public:
     ProgressWindow(const std::string & titleText);
     virtual ~ProgressWindow();
 
-    void setProgress(f32 percent);
+    void setProgress(float percent);
     void setTitle(const std::string & title);
 private:
     void draw(CVideo * v);

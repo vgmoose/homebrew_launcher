@@ -1,11 +1,9 @@
 #include <nsysnet/socket.h>
 
-int recvwait(int sock, unsigned char *buffer, int len)
-{
+int recvwait(int sock, unsigned char *buffer, int len) {
     int recvBytes = 0;
 
-    while(len)
-    {
+    while(len) {
         int ret = recv(sock, buffer, len, 0);
         if(ret <= 0) {
             return ret;

@@ -20,16 +20,14 @@
 #include "gui/Gui.h"
 #include "gui/GuiFrame.h"
 
-class HomebrewLaunchWindow : public GuiFrame, public sigslot::has_slots<>
-{
+class HomebrewLaunchWindow : public GuiFrame, public sigslot::has_slots<> {
 public:
     HomebrewLaunchWindow(const std::string & launchPath, GuiImageData * iconImgData);
     virtual ~HomebrewLaunchWindow();
 
     sigslot::signal1<GuiElement *> backButtonClicked;
 private:
-    void OnBackButtonClick(GuiButton *button, const GuiController *controller, GuiTrigger *trigger)
-    {
+    void OnBackButtonClick(GuiButton *button, const GuiController *controller, GuiTrigger *trigger) {
         backButtonClicked(this);
     }
 

@@ -25,22 +25,19 @@
 
 class CVideo;
 
-class MainWindow : public sigslot::has_slots<>
-{
+class MainWindow : public sigslot::has_slots<> {
 public:
     MainWindow(int w, int h);
     virtual ~MainWindow();
 
-    void appendTv(GuiElement *e)
-    {
+    void appendTv(GuiElement *e) {
         if(!e)
             return;
 
         removeTv(e);
         tvElements.push_back(e);
     }
-    void appendDrc(GuiElement *e)
-    {
+    void appendDrc(GuiElement *e) {
         if(!e)
             return;
 
@@ -48,22 +45,19 @@ public:
         drcElements.push_back(e);
     }
 
-    void append(GuiElement *e)
-    {
+    void append(GuiElement *e) {
         appendTv(e);
         appendDrc(e);
     }
 
-    void insertTv(u32 pos, GuiElement *e)
-    {
+    void insertTv(uint32_t pos, GuiElement *e) {
         if(!e)
             return;
 
         removeTv(e);
         tvElements.insert(tvElements.begin() + pos, e);
     }
-    void insertDrc(u32 pos, GuiElement *e)
-    {
+    void insertDrc(uint32_t pos, GuiElement *e) {
         if(!e)
             return;
 
@@ -71,42 +65,33 @@ public:
         drcElements.insert(drcElements.begin() + pos, e);
     }
 
-    void insert(u32 pos, GuiElement *e)
-    {
+    void insert(uint32_t pos, GuiElement *e) {
         insertTv(pos, e);
         insertDrc(pos, e);
     }
 
-    void removeTv(GuiElement *e)
-    {
-        for(u32 i = 0; i < tvElements.size(); ++i)
-        {
-            if(e == tvElements[i])
-            {
+    void removeTv(GuiElement *e) {
+        for(uint32_t i = 0; i < tvElements.size(); ++i) {
+            if(e == tvElements[i]) {
                 tvElements.erase(tvElements.begin() + i);
                 break;
             }
         }
     }
-    void removeDrc(GuiElement *e)
-    {
-        for(u32 i = 0; i < drcElements.size(); ++i)
-        {
-            if(e == drcElements[i])
-            {
+    void removeDrc(GuiElement *e) {
+        for(uint32_t i = 0; i < drcElements.size(); ++i) {
+            if(e == drcElements[i]) {
                 drcElements.erase(drcElements.begin() + i);
                 break;
             }
         }
     }
 
-    void remove(GuiElement *e)
-    {
+    void remove(GuiElement *e) {
         removeTv(e);
         removeDrc(e);
     }
-    void removeAll()
-    {
+    void removeAll() {
         tvElements.clear();
         drcElements.clear();
     }

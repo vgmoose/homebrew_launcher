@@ -5,11 +5,12 @@
 #include <nsysnet/socket.h>
 
 #include "TcpReceiver.h"
-#include "HomebrewMemory.h"
 #include "fs/CFile.hpp"
+#include "fs/FSUtils.h"
 #include "utils/logger.h"
 #include "utils/StringTools.h"
 #include "utils/net.h"
+#include "common/common.h"
 
 TcpReceiver::TcpReceiver(int port)
     : GuiFrame(0, 0)
@@ -17,67 +18,58 @@ TcpReceiver::TcpReceiver(int port)
     , exitRequested(false)
     , serverPort(port)
     , serverSocket(-1)
-    , progressWindow("Receiving file...")
-{
+    , progressWindow("Receiving file...") {
     width = progressWindow.getWidth();
     height = progressWindow.getHeight();
     append(&progressWindow);
     resumeThread();
 }
 
-TcpReceiver::~TcpReceiver()
-{
+TcpReceiver::~TcpReceiver() {
     exitRequested = true;
 
-    if(serverSocket >= 0)
-    {
+    if(serverSocket >= 0) {
         shutdown(serverSocket, SHUT_RDWR);
     }
 }
 
-void TcpReceiver::executeThread()
-{
-	serverSocket = socket(AF_INET, SOCK_STREAM, IPPROTO_IP);
-	if (serverSocket < 0)
-	{
-	    log_printf("Server socket create failed\n");
-		return;
-	}
+void TcpReceiver::executeThread() {
+    serverSocket = socket(AF_INET, SOCK_STREAM, IPPROTO_IP);
+    if (serverSocket < 0) {
+        log_printf("Server socket create failed\n");
+        return;
+    }
 
-    u32 enable = 1;
-	setsockopt(serverSocket, SOL_SOCKET, SO_REUSEADDR, &enable, sizeof(enable));
+    uint32_t enable = 1;
+    setsockopt(serverSocket, SOL_SOCKET, SO_REUSEADDR, &enable, sizeof(enable));
 
-	struct sockaddr_in bindAddress;
-	memset(&bindAddress, 0, sizeof(bindAddress));
-	bindAddress.sin_family = AF_INET;
-	bindAddress.sin_port = serverPort;
-	bindAddress.sin_addr.s_addr = INADDR_ANY;
+    struct sockaddr_in bindAddress;
+    memset(&bindAddress, 0, sizeof(bindAddress));
+    bindAddress.sin_family = AF_INET;
+    bindAddress.sin_port = serverPort;
+    bindAddress.sin_addr.s_addr = INADDR_ANY;
 
-	s32 ret;
-	if ((ret = bind(serverSocket, (struct sockaddr *)&bindAddress, sizeof(bindAddress))) < 0)
-    {
-	    log_printf("Server socket bind failed\n");
-		socketclose(serverSocket);
-		return;
-	}
+    int32_t ret;
+    if ((ret = bind(serverSocket, (struct sockaddr *)&bindAddress, sizeof(bindAddress))) < 0) {
+        log_printf("Server socket bind failed\n");
+        socketclose(serverSocket);
+        return;
+    }
 
-	if ((ret = listen(serverSocket, 1)) < 0)
-    {
-	    log_printf("Server socket listen failed\n");
-		socketclose(serverSocket);
-		return;
-	}
+    if ((ret = listen(serverSocket, 1)) < 0) {
+        log_printf("Server socket listen failed\n");
+        socketclose(serverSocket);
+        return;
+    }
 
-	struct sockaddr_in clientAddr;
-	memset(&clientAddr, 0, sizeof(clientAddr));
-	socklen_t addrlen = sizeof(clientAddr);
+    struct sockaddr_in clientAddr;
+    memset(&clientAddr, 0, sizeof(clientAddr));
+    socklen_t addrlen = sizeof(clientAddr);
 
-    while(!exitRequested)
-    {
-        s32 clientSocket = accept(serverSocket, (struct sockaddr*)&clientAddr, &addrlen);
-        if(clientSocket >= 0)
-        {
-            u32 ipAddress = clientAddr.sin_addr.s_addr;
+    while(!exitRequested) {
+        int32_t clientSocket = accept(serverSocket, (struct sockaddr*)&clientAddr, &addrlen);
+        if(clientSocket >= 0) {
+            uint32_t ipAddress = clientAddr.sin_addr.s_addr;
             serverReceiveStart(this, ipAddress);
             int result = loadToMemory(clientSocket, ipAddress);
             serverReceiveFinished(this, ipAddress, result);
@@ -85,10 +77,8 @@ void TcpReceiver::executeThread()
 
             if(result > 0)
                 break;
-        }
-        else
-        {
-	        log_printf("Server socket accept failed %i\n", clientSocket);
+        } else {
+            log_printf("Server socket accept failed %i\n", clientSocket);
             usleep(100000);
         }
     }
@@ -96,50 +86,45 @@ void TcpReceiver::executeThread()
     socketclose(serverSocket);
 }
 
-int TcpReceiver::loadToMemory(s32 clientSocket, u32 ipAddress)
-{
+int TcpReceiver::loadToMemory(int32_t clientSocket, uint32_t ipAddress) {
     log_printf("Loading file from ip %08X\n", ipAddress);
 
-    u32 fileSize = 0;
-    u32 fileSizeUnc = 0;
+    uint32_t fileSize = 0;
+    uint32_t fileSizeUnc = 0;
     unsigned char haxx[8];
     memset(haxx, 0, sizeof(haxx));
     //skip haxx
     recvwait(clientSocket, haxx, sizeof(haxx));
     recvwait(clientSocket, (unsigned char*)&fileSize, sizeof(fileSize));
 
-    if (haxx[4] > 0 || haxx[5] > 4)
-    {
+    if (haxx[4] > 0 || haxx[5] > 4) {
         recvwait(clientSocket, (unsigned char*)&fileSizeUnc, sizeof(fileSizeUnc)); // Compressed protocol, read another 4 bytes
     }
 
-    u32 bytesRead = 0;
+    uint32_t bytesRead = 0;
     struct in_addr in;
     in.s_addr = ipAddress;
-    progressWindow.setTitle(strfmt("Loading file from %s", inet_ntoa(in)));
+    progressWindow.setTitle(StringTools::strfmt("Loading file from %s", inet_ntoa(in)));
 
     log_printf("transfer start\n");
 
     unsigned char* loadAddress = (unsigned char*)memalign(0x40, fileSize);
-    if(!loadAddress)
-    {
+    if(!loadAddress) {
         progressWindow.setTitle("Not enough memory");
         sleep(1);
         return NOT_ENOUGH_MEMORY;
     }
 
     // Copy rpl in memory
-    while(bytesRead < fileSize)
-    {
-        progressWindow.setProgress(100.0f * (f32)bytesRead / (f32)fileSize);
+    while(bytesRead < fileSize) {
+        progressWindow.setProgress(100.0f * (float)bytesRead / (float)fileSize);
 
-        u32 blockSize = 0x1000;
+        uint32_t blockSize = 0x1000;
         if(blockSize > (fileSize - bytesRead))
             blockSize = fileSize - bytesRead;
 
         int ret = recv(clientSocket, loadAddress + bytesRead, blockSize, 0);
-        if(ret <= 0)
-        {
+        if(ret <= 0) {
             log_printf("Failure on reading file\n");
             break;
         }
@@ -147,10 +132,9 @@ int TcpReceiver::loadToMemory(s32 clientSocket, u32 ipAddress)
         bytesRead += ret;
     }
 
-    progressWindow.setProgress((f32)bytesRead / (f32)fileSize);
+    progressWindow.setProgress((float)bytesRead / (float)fileSize);
 
-    if(bytesRead != fileSize)
-    {
+    if(bytesRead != fileSize) {
         free(loadAddress);
         log_printf("File loading not finished, %i of %i bytes received\n", bytesRead, fileSize);
         progressWindow.setTitle("Receive incomplete");
@@ -160,21 +144,18 @@ int TcpReceiver::loadToMemory(s32 clientSocket, u32 ipAddress)
 
     int res = -1;
 
-	// Do we need to unzip this thing?
-	if (haxx[4] > 0 || haxx[5] > 4)
-	{
+    // Do we need to unzip this thing?
+    if (haxx[4] > 0 || haxx[5] > 4)	{
         unsigned char* inflatedData = NULL;
 
-		// We need to unzip...
-		if (loadAddress[0] == 'P' && loadAddress[1] == 'K' && loadAddress[2] == 0x03 && loadAddress[3] == 0x04)
-		{
-		    //! TODO:
-		    //! mhmm this is incorrect, it has to parse the zip
+        // We need to unzip...
+        if (loadAddress[0] == 'P' && loadAddress[1] == 'K' && loadAddress[2] == 0x03 && loadAddress[3] == 0x04) {
+            //! TODO:
+            //! mhmm this is incorrect, it has to parse the zip
 
             // Section is compressed, inflate
             inflatedData = (unsigned char*)malloc(fileSizeUnc);
-            if(!inflatedData)
-            {
+            if(!inflatedData) {
                 free(loadAddress);
                 progressWindow.setTitle("Not enough memory");
                 sleep(1);
@@ -190,8 +171,7 @@ int TcpReceiver::loadToMemory(s32 clientSocket, u32 ipAddress)
             s.opaque = Z_NULL;
 
             ret = inflateInit(&s);
-            if (ret != Z_OK)
-            {
+            if (ret != Z_OK) {
                 free(loadAddress);
                 free(inflatedData);
                 progressWindow.setTitle("Uncompress failure");
@@ -206,8 +186,7 @@ int TcpReceiver::loadToMemory(s32 clientSocket, u32 ipAddress)
             s.next_out = (Bytef *)&inflatedData[0];
 
             ret = inflate(&s, Z_FINISH);
-            if (ret != Z_OK && ret != Z_STREAM_END)
-            {
+            if (ret != Z_OK && ret != Z_STREAM_END) {
                 free(loadAddress);
                 free(inflatedData);
                 progressWindow.setTitle("Uncompress failure");
@@ -217,51 +196,53 @@ int TcpReceiver::loadToMemory(s32 clientSocket, u32 ipAddress)
 
             inflateEnd(&s);
             fileSize = fileSizeUnc;
-		}
-		else
-        {
+        } else {
             // Section is compressed, inflate
             inflatedData = (unsigned char*)malloc(fileSizeUnc);
-            if(!inflatedData)
-            {
+            if(!inflatedData) {
                 free(loadAddress);
                 progressWindow.setTitle("Not enough memory");
                 sleep(1);
                 return NOT_ENOUGH_MEMORY;
             }
 
-			uLongf f = fileSizeUnc;
-			int result = uncompress((Bytef*)&inflatedData[0], &f, (Bytef*)loadAddress, fileSize);
-			if(result != Z_OK)
-            {
+            uLongf f = fileSizeUnc;
+            int result = uncompress((Bytef*)&inflatedData[0], &f, (Bytef*)loadAddress, fileSize);
+            if(result != Z_OK) {
                 log_printf("uncompress failed %i\n", result);
                 progressWindow.setTitle("Uncompress failure");
                 sleep(1);
                 return FILE_READ_ERROR;
             }
 
-			fileSizeUnc = f;
+            fileSizeUnc = f;
             fileSize = fileSizeUnc;
         }
 
         free(loadAddress);
 
-        HomebrewInitMemory();
-        res = HomebrewCopyMemory(inflatedData, fileSize);
+        FSUtils::CreateSubfolder(HBL_TEMP_RPX_PATH);
+        if(!FSUtils::saveBufferToFile(HBL_TEMP_RPX_FILE, loadAddress, fileSize)) {
+            res = FILE_SAVE_ERROR;
+        } else {
+            res = 1;
+        }
+
         free(inflatedData);
-	}
-	else
-    {
-        HomebrewInitMemory();
-        res = HomebrewCopyMemory(loadAddress, fileSize);
+    } else {
+        FSUtils::CreateSubfolder(HBL_TEMP_RPX_PATH);
+        if(!FSUtils::saveBufferToFile(HBL_TEMP_RPX_FILE, loadAddress, fileSize)) {
+            res = FILE_SAVE_ERROR;
+        } else {
+            res = 1;
+        }
         free(loadAddress);
     }
 
-    if(res < 0)
-    {
-        progressWindow.setTitle("Not enough memory");
+    if(res < 0) {
+        progressWindow.setTitle("Failed");
         sleep(1);
-        return NOT_ENOUGH_MEMORY;
+        return res;
     }
 
     return fileSize;

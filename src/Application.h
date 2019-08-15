@@ -18,14 +18,13 @@
 #define _APPLICATION_H
 
 #include "menu/MainWindow.h"
-#include "video/CVideo.h"
+#include <gui/video/CVideo.h>
 #include "system/CThread.h"
 
 // forward declaration
 class FreeTypeGX;
 
-class Application : public CThread
-{
+class Application : public CThread {
 public:
     static Application * instance() {
         if(!applicationInstance)

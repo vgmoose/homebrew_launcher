@@ -8,32 +8,31 @@
 #include "system/CThread.h"
 #include "gui/sigslot.h"
 
-class TcpReceiver : public GuiFrame, public CThread
-{
+class TcpReceiver : public GuiFrame, public CThread {
 public:
-    enum eLoadResults
-    {
+    enum eLoadResults {
         SUCCESS = 0,
         INVALID_INPUT = -1,
         FILE_OPEN_FAILURE = -2,
         FILE_READ_ERROR = -3,
         NOT_ENOUGH_MEMORY = -4,
+        FILE_SAVE_ERROR = -5,
     };
 
     TcpReceiver(int port);
     ~TcpReceiver();
 
-    sigslot::signal2<GuiElement *, u32> serverReceiveStart;
-    sigslot::signal3<GuiElement *, u32, int> serverReceiveFinished;
+    sigslot::signal2<GuiElement *, uint32_t> serverReceiveStart;
+    sigslot::signal3<GuiElement *, uint32_t, int> serverReceiveFinished;
 
 private:
 
     void executeThread();
-    int loadToMemory(s32 clientSocket, u32 ipAddress);
+    int loadToMemory(int32_t clientSocket, uint32_t ipAddress);
 
     bool exitRequested;
-    s32 serverPort;
-    s32 serverSocket;
+    int32_t serverPort;
+    int32_t serverSocket;
     ProgressWindow progressWindow;
 };
 

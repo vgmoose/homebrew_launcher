@@ -4,16 +4,13 @@
 #include <vector>
 #include <string>
 
-#include "common/types.h"
 #include "ProgressWindow.h"
 #include "system/CThread.h"
 #include "gui/sigslot.h"
 
-class HomebrewLoader : public GuiFrame, public CThread
-{
+class HomebrewLoader : public GuiFrame, public CThread {
 public:
-    enum eLoadResults
-    {
+    enum eLoadResults {
         SUCCESS = 0,
         INVALID_INPUT = -1,
         FILE_OPEN_FAILURE = -2,
@@ -23,20 +20,19 @@ public:
 
 
     static HomebrewLoader * loadToMemoryAsync(const std::string & filepath);
+    static int32_t loadToMemory(const std::string & file);
     sigslot::signal3<GuiElement *, const std::string &, int> asyncLoadFinished;
 private:
 
     HomebrewLoader(const std::string & file)
-        : GuiFrame(0, 0)
+        : GuiFrame(1280, 720)
         , CThread(CThread::eAttributeAffCore0 | CThread::eAttributePinnedAff)
         , filepath(file)
-        , progressWindow("Loading file...")
-	{
-	    append(&progressWindow);
-
-	    width = progressWindow.getWidth();
-	    height = progressWindow.getHeight();
-	}
+        , bgImageColor(1280, 720, (GX2Color) {
+        0, 0, 0, 0
+    }) {
+        append(&bgImageColor);
+    }
     void executeThread();
 
     int loadToMemory();
@@ -44,7 +40,7 @@ private:
     static void loadCallback(CThread *thread, void *arg);
 
     const std::string filepath;
-    ProgressWindow progressWindow;
+    GuiImage bgImageColor;
 };
 
 

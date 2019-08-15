@@ -1,96 +1,117 @@
 #include <algorithm>
 #include <string>
 #include <string.h>
+#include <coreinit/ios.h>
 
 #include "HomebrewLoader.h"
-#include "HomebrewMemory.h"
 #include "fs/CFile.hpp"
 #include "utils/logger.h"
 #include "utils/StringTools.h"
 
-HomebrewLoader * HomebrewLoader::loadToMemoryAsync(const std::string & file)
-{
+HomebrewLoader * HomebrewLoader::loadToMemoryAsync(const std::string & file) {
     HomebrewLoader * loader = new HomebrewLoader(file);
     loader->resumeThread();
     return loader;
 }
 
-void HomebrewLoader::executeThread()
-{
+void HomebrewLoader::executeThread() {
     int result = loadToMemory();
     asyncLoadFinished(this, filepath, result);
 }
 
-int HomebrewLoader::loadToMemory()
-{
-    if(filepath.empty())
+int32_t HomebrewLoader::loadToMemory(const std::string & file) {
+    HomebrewLoader * loader = new HomebrewLoader(file);
+    int result = loader->loadToMemory();
+    delete loader;
+    return result;;
+}
+
+// You must free the result if result is non-NULL.
+char *str_replace(char *orig, char *rep, char *with) {
+    char *result; // the return string
+    char *ins;    // the next insert point
+    char *tmp;    // varies
+    int len_rep;  // length of rep (the string to remove)
+    int len_with; // length of with (the string to replace rep with)
+    int len_front; // distance between rep and end of last rep
+    int count;    // number of replacements
+
+    // sanity checks and initialization
+    if (!orig || !rep)
+        return NULL;
+    len_rep = strlen(rep);
+    if (len_rep == 0)
+        return NULL; // empty rep causes infinite loop during count
+    if (!with)
+        with = "";
+    len_with = strlen(with);
+
+    // count the number of replacements needed
+    ins = orig;
+    for (count = 0; tmp = strstr(ins, rep); ++count) {
+        ins = tmp + len_rep;
+    }
+
+    tmp = result = (char*)malloc(strlen(orig) + (len_with - len_rep) * count + 1);
+
+    if (!result)
+        return NULL;
+
+    // first time through the loop, all the variable are set correctly
+    // from here on,
+    //    tmp points to the end of the result string
+    //    ins points to the next occurrence of rep in orig
+    //    orig points to the remainder of orig after "end of rep"
+    while (count--) {
+        ins = strstr(orig, rep);
+        len_front = ins - orig;
+        tmp = strncpy(tmp, orig, len_front) + len_front;
+        tmp = strcpy(tmp, with) + len_with;
+        orig += len_front + len_rep; // move to next "end of rep"
+    }
+    strcpy(tmp, orig);
+    return result;
+}
+
+int HomebrewLoader::loadToMemory() {
+    if(filepath.empty()) {
         return INVALID_INPUT;
+    }
 
     log_printf("Loading file %s\n", filepath.c_str());
 
-    CFile file(filepath, CFile::ReadOnly);
-    if(!file.isOpen())
-    {
-        progressWindow.setTitle(strfmt("Failed to open file %s", FullpathToFilename(filepath.c_str())));
-        sleep(1);
-        return FILE_OPEN_FAILURE;
-    }
+    char * repl = (char*)"fs:/vol/external01/";
+    char * with = (char*)"/vol/storage_iosu_homebrew/";
+    char * input = (char*) filepath.c_str();
 
-    u32 bytesRead = 0;
-    u32 fileSize = file.size();
+    char* extension = input + strlen(input) - 4;
+    if (extension[0] == '.' &&
+            extension[1] == 'r' &&
+            extension[2] == 'p' &&
+            extension[3] == 'x') {
 
-    progressWindow.setTitle(strfmt("Loading file %s", FullpathToFilename(filepath.c_str())));
 
-    unsigned char *buffer = (unsigned char*) memalign(0x40, (fileSize + 0x3F) & ~0x3F);
-    if(!buffer)
-    {
-        progressWindow.setTitle("Not enough memory");
-        sleep(1);
-        return NOT_ENOUGH_MEMORY;
-    }
+        char rpxpath[280];
+        char * path = str_replace(input,repl, with);
+        if(path != NULL) {
+            log_printf("Loading file %s\n", path);
 
-    // Copy rpl in memory
-    while(bytesRead < fileSize)
-    {
-        progressWindow.setProgress(100.0f * (f32)bytesRead / (f32)fileSize);
+            strncpy(rpxpath, path, sizeof(rpxpath) - 1);
+            rpxpath[sizeof(rpxpath) - 1] = '\0';
 
-        u32 blockSize = 0x8000;
-        if(blockSize > (fileSize - bytesRead))
-            blockSize = fileSize - bytesRead;
+            free(path);
 
-        int ret = file.read(buffer + bytesRead, blockSize);
-        if(ret <= 0)
-        {
-            log_printf("Failure on reading file %s\n", filepath.c_str());
-            break;
+            int mcpFd = IOS_Open("/dev/mcp", (IOSOpenMode)0);
+            if(mcpFd >= 0) {
+                int out = 0;
+                IOS_Ioctl(mcpFd, 100, (void*)rpxpath, strlen(rpxpath), &out, sizeof(out));
+                IOS_Close(mcpFd);
+                if(out == 2) {
+                    return true;
+                }
+            }
         }
-
-        bytesRead += ret;
     }
 
-    progressWindow.setProgress((f32)bytesRead / (f32)fileSize);
-
-    if(bytesRead != fileSize)
-    {
-        free(buffer);
-        log_printf("File loading not finished for file %s, finished %i of %i bytes\n", filepath.c_str(), bytesRead, fileSize);
-        progressWindow.setTitle("File read failure");
-        sleep(1);
-        return FILE_READ_ERROR;
-    }
-
-    HomebrewInitMemory();
-
-    int ret = HomebrewCopyMemory(buffer, bytesRead);
-
-    free(buffer);
-
-    if(ret < 0)
-    {
-        progressWindow.setTitle("Not enough memory");
-        sleep(1);
-        return NOT_ENOUGH_MEMORY;
-    }
-
-    return fileSize;
+    return true;
 }
