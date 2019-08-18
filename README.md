@@ -1,41 +1,48 @@
-# WiiU Homebrew Launcher
+# WiiU Homebrew Launcher RPX
 
 The Homebrew Launcher is a WiiU homebrew that lists homebrew applications located on a SD card and permits launching them (similar to the Homebrew Channel of the Wii).
 
 #### Usage
 
-To use the Homebrew Launcher (or HBL, for short) you must copy homebrew_launcher.elf into SD:/wiiu/apps/homebrew_launcher/homebrew_launcher.elf, and run the installer throught your WiiU browser.
+To use the Homebrew Launcher (or HBL, for short) you must copy homebrew_launcher.rpx into SD:/wiiu/apps/homebrew_launcher/homebrew_launcher.rpx.
 
-The apps that will be listed are should be in the following path /wiiu/apps/homebrew_name/some_elf_name.elf on the root of the SD card. A meta.xml and an icon.png (256x96) are optional. Here is an example:
+To start the Homebrew Launcher you need to run [MochaLite](https://github.com/wiiu-env/MochaLite) and open the "Health and Safety"-app.
+
+The apps that will be listed are should be in the following path /wiiu/apps/homebrew_name/some_elf_name.rpx on the root of the SD card. A meta.xml and an icon.png (256x96) are optional. Here is an example:
 
 - sd:/
   - wiiu/
     - apps/
      - homebrew_launcher/
-        - homebrew_launcher.elf
+        - homebrew_launcher.rpx
         - meta.xml
         - icon.png
      - loadiine_gx2/
-       - loadiine_gx2.elf
+       - loadiine_gx2.rpx
        - meta.xml
        - icon.png
      - ddd/
-       - ddd.elf
+       - ddd.rpx
        - meta.xml
        - icon.png
      - ftpiiu/
-       - ftpiiu.elf
+       - ftpiiu.rpx
        - meta.xml
        - icon.png
 
 #### Building the Homebrew Launcher
-
 To build the main application devkitPPC is required as well as some additionally libraries. If not yet done export the path of devkitPPC and devkitPro to the evironment variables DEVKITPRO and DEVKITPPC. 
+
+Make sure you have [wut](https://github.com/devkitPro/wut/) installed.
+
+In addition you need: 
+- [libgui](https://github.com/wiiu-env/libgui) for the gui elements.
+- The ppc-portlibs `pacman -Syu ppc-portlibs`
 
 All remaining is to enter the main application path and enter "make". You should get a homebrew_launcher.rpx in the main path.
 
-#### Building an application / homebrew (ELF) for the Homebrew Launcher 
-For an example on how to build an application for the HBL check out the [Hello World example](https://github.com/dimok789/hello_world) application or the port of the libwiiu application [Pong](https://github.com/dimok789/pong_port) for HBL.
+#### Building an applicationfor the Homebrew Launcher 
+For an example on how to build an application for the HBL check out the [wut samples](https://github.com/devkitPro/wut/tree/master/samples).
 
 #### Meta XML
 
@@ -58,6 +65,7 @@ The icon.png has to be of the resolution 256 x 96 and can be placed in the same 
 
 ### Credits
 * Dimok
+* orboditilt
 * many contributors with their pull requests
 
 ##### WUT RPX toolchain which is used to build RPX version of HBL
