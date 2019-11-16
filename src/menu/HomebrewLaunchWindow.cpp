@@ -20,6 +20,7 @@
 #include "fs/DirList.h"
 #include "fs/FSUtils.h"
 #include "utils/HomebrewXML.h"
+#include "resources/Resources.h"
 #include "utils/utils.h"
 #include "Application.h"
 

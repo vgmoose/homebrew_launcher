@@ -45,7 +45,7 @@ int32_t CFile::open(const std::string & filepath, eOpenTypes mode) {
         openMode = O_RDWR;
         break;
     case Append: // append to file, file will be created if missing. write only
-        openMode = O_CREATE | O_APPEND | O_WRONLY;
+        openMode = O_CREAT | O_APPEND | O_WRONLY;
         break;
     }
 

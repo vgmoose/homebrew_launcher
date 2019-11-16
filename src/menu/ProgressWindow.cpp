@@ -15,6 +15,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  ****************************************************************************/
 #include "ProgressWindow.h"
+#include "resources/Resources.h"
 #include <gui/video/CVideo.h>
 
 ProgressWindow::ProgressWindow(const std::string & title)

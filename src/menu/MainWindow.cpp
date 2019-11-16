@@ -18,6 +18,7 @@
 #include "Application.h"
 #include "utils/StringTools.h"
 #include "utils/logger.h"
+#include "resources/Resources.h"
 
 
 MainWindow::MainWindow(int w, int h)

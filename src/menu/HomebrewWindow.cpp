@@ -21,6 +21,7 @@
 #include "fs/FSUtils.h"
 #include "system/AsyncDeleter.h"
 #include "utils/HomebrewXML.h"
+#include "resources/Resources.h"
 #include "utils/utils.h"
 #include "utils/logger.h"
 #include "HomebrewLaunchWindow.h"
