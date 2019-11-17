@@ -23,7 +23,7 @@ int32_t HomebrewLoader::loadToMemory(const std::string & file) {
     HomebrewLoader * loader = new HomebrewLoader(file);
     int result = loader->loadToMemory();
     delete loader;
-    return result;;
+    return result;
 }
 
 // You must free the result if result is non-NULL.
@@ -73,6 +73,14 @@ char *str_replace(char *orig, char *rep, char *with) {
     return result;
 }
 
+typedef struct __attribute((packed)) {
+    uint32_t command;
+    uint32_t target;
+    uint32_t filesize;
+    uint32_t fileoffset;
+    char path[256];    
+}LOAD_REQUEST;
+
 int HomebrewLoader::loadToMemory() {
     if(filepath.empty()) {
         return INVALID_INPUT;
@@ -81,7 +89,7 @@ int HomebrewLoader::loadToMemory() {
     log_printf("Loading file %s\n", filepath.c_str());
 
     char * repl = (char*)"fs:/vol/external01/";
-    char * with = (char*)"/vol/storage_iosu_homebrew/";
+    char * with = (char*)"";
     char * input = (char*) filepath.c_str();
 
     char* extension = input + strlen(input) - 4;
@@ -90,21 +98,25 @@ int HomebrewLoader::loadToMemory() {
             extension[2] == 'p' &&
             extension[3] == 'x') {
 
-
-        char rpxpath[280];
         char * path = str_replace(input,repl, with);
         if(path != NULL) {
+            LOAD_REQUEST request;
+            memset(&request, 0, sizeof(request));
+            
             log_printf("Loading file %s\n", path);
-
-            strncpy(rpxpath, path, sizeof(rpxpath) - 1);
-            rpxpath[sizeof(rpxpath) - 1] = '\0';
+            request.command = 0xFC; // IPC_CUSTOM_LOAD_CUSTOM_RPX;
+            request.target = 0;     // LOAD_FILE_TARGET_SD_CARD
+            request.filesize = 0;   // unknown
+            request.fileoffset = 0; //
+            
+            strncpy(request.path, path, 255);
 
             free(path);
 
             int mcpFd = IOS_Open("/dev/mcp", (IOSOpenMode)0);
             if(mcpFd >= 0) {
                 int out = 0;
-                IOS_Ioctl(mcpFd, 100, (void*)rpxpath, strlen(rpxpath), &out, sizeof(out));
+                IOS_Ioctl(mcpFd, 100, &request, sizeof(request), &out, sizeof(out));
                 IOS_Close(mcpFd);
                 if(out == 2) {
                     return true;
