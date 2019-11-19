@@ -19,7 +19,6 @@
 
 #include "gui/Gui.h"
 #include "gui/GuiFrame.h"
-#include "TcpReceiver.h"
 
 class HomebrewWindow : public GuiFrame, public sigslot::has_slots<> {
 public:
@@ -35,10 +34,6 @@ private:
     void OnHomebrewButtonClick(GuiButton *button, const GuiController *controller, GuiTrigger *trigger);
     void OnLeftArrowClick(GuiButton *button, const GuiController *controller, GuiTrigger *trigger);
     void OnRightArrowClick(GuiButton *button, const GuiController *controller, GuiTrigger *trigger);
-
-    void OnCloseTcpReceiverFinish(GuiElement *element);
-    void OnTcpReceiveStart(GuiElement *element, uint32_t ip);
-    void OnTcpReceiveFinish(GuiElement *element, uint32_t ip, int result);
 
     GuiSound *buttonClickSound;
     GuiImageData * homebrewButtonImgData;
@@ -69,8 +64,6 @@ private:
     int listOffset;
     int currentLeftPosition;
     int targetLeftPosition;
-
-    TcpReceiver tcpReceiver;
 };
 
 #endif //_HOMEBREW_WINDOW_H_
