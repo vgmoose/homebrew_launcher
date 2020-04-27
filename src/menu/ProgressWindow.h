@@ -18,6 +18,7 @@
 #define _PROGRESS_WINDOW_H_
 
 #include "gui/Gui.h"
+#include "system/CMutex.h"
 
 class ProgressWindow : public GuiFrame, public sigslot::has_slots<> {
 public:

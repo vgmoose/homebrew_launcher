@@ -52,7 +52,7 @@ void AsyncDeleter::executeThread(void) {
         //! because otherwise they would block or do invalid access on GUI thread
         while(!realDeleteElements.empty()) {
             deleteMutex.lock();
-            AsyncDeleter::Element *element = realDeleteElements.front();
+            GuiElement *element = realDeleteElements.front();
             realDeleteElements.pop();
             deleteMutex.unlock();
 

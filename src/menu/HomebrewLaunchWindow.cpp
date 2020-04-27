@@ -23,6 +23,7 @@
 #include "resources/Resources.h"
 #include "utils/utils.h"
 #include "Application.h"
+#include "system/AsyncDeleter.h"
 
 #include <sysapp/launch.h>
 
