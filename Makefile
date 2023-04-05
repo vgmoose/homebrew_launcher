@@ -8,3 +8,7 @@ CPPFILES := $(shell find $(SOURCES) -name '*.cpp')
 
 make all:
 	g++ $(INCLUDES) -o $(NAME).exe $(CPPFILES) $(LIBS) -DPC
+
+.PHONY: clean
+clean:
+	rm -f $(NAME).exe

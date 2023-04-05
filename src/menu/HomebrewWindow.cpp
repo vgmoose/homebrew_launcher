@@ -33,10 +33,10 @@
 
 HomebrewWindow::HomebrewWindow(int w, int h)
     : GuiFrame(w, h)
-    , buttonClickSound(Resources::GetSound("button_click.mp3"))
-    , homebrewButtonImgData(Resources::GetImageData("homebrewButton.png"))
-    , arrowRightImageData(Resources::GetImageData("rightArrow.png"))
-    , arrowLeftImageData(Resources::GetImageData("leftArrow.png"))
+    , buttonClickSound(Resources::GetSound(ASSET_ROOT "button_click.wav"))
+    , homebrewButtonImgData(Resources::GetImageData(ASSET_ROOT "homebrewButton.png"))
+    , arrowRightImageData(Resources::GetImageData(ASSET_ROOT "rightArrow.png"))
+    , arrowLeftImageData(Resources::GetImageData(ASSET_ROOT "leftArrow.png"))
     , arrowRightImage(arrowRightImageData)
     , arrowLeftImage(arrowLeftImageData)
     , arrowRightButton(arrowRightImage.getWidth(), arrowRightImage.getHeight())
@@ -176,10 +176,10 @@ HomebrewWindow::~HomebrewWindow() {
         delete homebrewButtons[i].iconImg;
     }
 
-    Resources::RemoveSound(buttonClickSound);
-    Resources::RemoveImageData(homebrewButtonImgData);
-    Resources::RemoveImageData(arrowRightImageData);
-    Resources::RemoveImageData(arrowLeftImageData);
+    // Resources::RemoveSound(buttonClickSound);
+    // Resources::RemoveImageData(homebrewButtonImgData);
+    // Resources::RemoveImageData(arrowRightImageData);
+    // Resources::RemoveImageData(arrowLeftImageData);
 }
 
 void HomebrewWindow::OnOpenEffectFinish(GuiElement *element) {

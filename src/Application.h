@@ -30,6 +30,8 @@ public:
         return bgMusic;
     }
 
+    void initElements();
+
     int exec(void);
     void fadeOut(void);
 

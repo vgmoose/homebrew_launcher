@@ -20,22 +20,6 @@ Application::Application()
     , mainWindow(NULL)
     , fontSystem(NULL)
     , exitCode(EXIT_RELAUNCH_ON_LOAD) {
-        // TODO: handle wiiu controls better?
-    controller[0] = new SDLControllerWiiUGamepad(GuiTrigger::CHANNEL_1);
-    controller[1] = new SDLControllerWiiUProContoller(GuiTrigger::CHANNEL_2);
-    controller[2] = new SDLControllerWiiUProContoller(GuiTrigger::CHANNEL_3);
-    controller[3] = new SDLControllerWiiUProContoller(GuiTrigger::CHANNEL_4);
-    controller[4] = new SDLControllerWiiUProContoller(GuiTrigger::CHANNEL_5);
-
-    //! load resources
-    Resources::LoadFiles("fs:/vol/external01/wiiu/apps/homebrew_launcher/resources");
-
-    //! create bgMusic
-    bgMusic = new GuiSound(Resources::GetFile("bgMusic.ogg"), Resources::GetFileSize("bgMusic.ogg"));
-    bgMusic->SetLoop(true);
-    bgMusic->Play();
-    bgMusic->SetVolume(50);
-
     exitApplication = false;
 
 #ifndef PC
@@ -57,7 +41,7 @@ Application::~Application() {
     // AsyncDeleter::destroyInstance();
 
     printf("Clear resources\n");
-    Resources::Clear();
+    // Resources::Clear();
 
     // printf("Stop sound handler\n");
     // SoundHandler::DestroyInstance();
@@ -68,6 +52,7 @@ Application::~Application() {
 }
 
 int Application::exec() {
+    executeThread();
     //! start main GX2 thread
     // resumeThread();
     //! now wait for thread to finish
@@ -186,31 +171,59 @@ int getTvHeight() {
     return 720;
 }
 
+void Application::initElements() {
+    // TODO: handle wiiu controls better?
+    controller[0] = new SDLControllerWiiUGamepad(GuiTrigger::CHANNEL_1);
+    controller[1] = new SDLControllerWiiUProContoller(GuiTrigger::CHANNEL_2);
+    controller[2] = new SDLControllerWiiUProContoller(GuiTrigger::CHANNEL_3);
+    controller[3] = new SDLControllerWiiUProContoller(GuiTrigger::CHANNEL_4);
+    controller[4] = new SDLControllerWiiUProContoller(GuiTrigger::CHANNEL_5);
+
+    //! create bgMusic
+    bgMusic = new GuiSound(
+        Resources::GetFile(ASSET_ROOT "bgMusic.wav"),
+        Resources::GetFileSize(ASSET_ROOT "bgMusic.wav")
+    );
+    bgMusic->SetLoop(true);
+    bgMusic->Play();
+    bgMusic->SetVolume(50);
+}
+
 void Application::executeThread(void) {
     printf("Entering main loop\n");
 
     // printf("Initialize video\n");
     SDLSystem sdlSystem;
+    initElements();
+
     Renderer* mainRenderer = sdlSystem.getRenderer();
     video = new Renderer(mainRenderer->getRenderer(), SDL_PIXELFORMAT_RGBA8888);
     printf("Video size %i x %i\n", getTvWidth(), getTvHeight());
 
     //! setup default Font
     printf("Initialize main font system\n");
-    GuiFont *fontSystem = new GuiFont(Resources::GetFile("font.ttf"), Resources::GetFileSize("font.ttf"), mainRenderer);
+    GuiFont *fontSystem = new GuiFont(Resources::GetFile(ASSET_ROOT "font.ttf"), Resources::GetFileSize(ASSET_ROOT "font.ttf"), mainRenderer);
     GuiText::setPresetFont(fontSystem);
 
     if(mainWindow == NULL) {
         printf("Initialize main window\n");
         mainWindow = new MainWindow(getTvWidth(), getTvHeight());
     }
-    //! main GX2 loop (60 Hz cycle with max priority on core 1)
+
+    // main loop
     while(!exitApplication) {
         procUI();
 
         //! Read out inputs
         SDL_Event event;
         SDL_PollEvent(&event);
+
+        // quit!!!
+        if(event.type == SDL_QUIT) {
+            exitApplication = true;
+            break;
+        }
+
         for(int i = 0; i < 5; i++) {
             // TODO: oob check
             if(controller[i]->update(&event, getTvWidth(), getTvHeight()) == false)

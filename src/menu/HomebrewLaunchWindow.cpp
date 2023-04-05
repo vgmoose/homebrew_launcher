@@ -28,10 +28,10 @@
 
 HomebrewLaunchWindow::HomebrewLaunchWindow(const std::string & launchPath, GuiTextureData * iconImgData)
     : GuiFrame(0, 0)
-    , buttonClickSound(Resources::GetSound("button_click.mp3"))
-    , backgroundImgData(Resources::GetImageData("launchMenuBox.png"))
+    , buttonClickSound(Resources::GetSound(ASSET_ROOT "button_click.wav"))
+    , backgroundImgData(Resources::GetImageData(ASSET_ROOT "launchMenuBox.png"))
     , backgroundImg(backgroundImgData)
-    , buttonImgData(Resources::GetImageData("button.png"))
+    , buttonImgData(Resources::GetImageData(ASSET_ROOT "button.png"))
     , iconImage(iconImgData)
     , titleText((char*)NULL, 42, sdlWhite)
     , versionText("Version:", 32, sdlWhite)
@@ -139,9 +139,9 @@ HomebrewLaunchWindow::HomebrewLaunchWindow(const std::string & launchPath, GuiTe
 }
 
 HomebrewLaunchWindow::~HomebrewLaunchWindow() {
-    Resources::RemoveSound(buttonClickSound);
-    Resources::RemoveImageData(backgroundImgData);
-    Resources::RemoveImageData(buttonImgData);
+    // Resources::RemoveSound(buttonClickSound);
+    // Resources::RemoveImageData(backgroundImgData);
+    // Resources::RemoveImageData(buttonImgData);
 }
 
 void HomebrewLaunchWindow::OnOpenEffectFinish(GuiElement *element) {

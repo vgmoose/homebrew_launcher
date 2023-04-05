@@ -16,12 +16,13 @@
  ****************************************************************************/
 #include "ProgressWindow.h"
 #include "resources/Resources.h"
+#include "common/common.h"
 
 #define sdlWhite SDL_Color { 255, 255, 255, 255 }
 
 ProgressWindow::ProgressWindow(const std::string & title)
     : GuiFrame(0, 0)
-    , bgImageData(Resources::GetImageData("progressWindow.png"))
+    , bgImageData(Resources::GetImageData(ASSET_ROOT "progressWindow.png"))
     , bgImage(bgImageData)
     , progressImageBlack((SDL_Color) {
         0, 0, 0, 255
@@ -72,7 +73,7 @@ ProgressWindow::ProgressWindow(const std::string & title)
 }
 
 ProgressWindow::~ProgressWindow() {
-    Resources::RemoveImageData(bgImageData);
+    // Resources::RemoveImageData(bgImageData);
 }
 
 void ProgressWindow::setTitle(const std::string & title) {

@@ -3,7 +3,6 @@
 #include "utils/StringTools.h"
 #include "resources/Resources.h"
 
-
 MainWindow::MainWindow(int w, int h)
     : width(w)
     , height(h)
@@ -28,7 +27,7 @@ MainWindow::MainWindow(int w, int h)
     // append(&bgParticleImg);
 
     for(int i = 0; i < 4; i++) {
-        std::string filename = StringTools::strfmt("player%i_point.png", i+1);
+        std::string filename = StringTools::strfmt(ASSET_ROOT "player%i_point.png", i+1);
         pointerImgData[i] = Resources::GetImageData(filename.c_str());
         pointerImg[i] = new GuiImage(pointerImgData[i]);
         pointerImg[i]->setScale(1.5f);
@@ -53,7 +52,7 @@ MainWindow::~MainWindow() {
     }
     for(int i = 0; i < 4; i++) {
         delete pointerImg[i];
-        Resources::RemoveImageData(pointerImgData[i]);
+        // Resources::RemoveImageData(pointerImgData[i]);
     }
 }
 
