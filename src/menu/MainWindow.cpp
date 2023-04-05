@@ -1,48 +1,31 @@
-/****************************************************************************
- * Copyright (C) 2015 Dimok
- *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- ****************************************************************************/
 #include "MainWindow.h"
 #include "Application.h"
 #include "utils/StringTools.h"
-#include "utils/logger.h"
 #include "resources/Resources.h"
 
 
 MainWindow::MainWindow(int w, int h)
     : width(w)
     , height(h)
-    , bgImageColor(w, h, (GX2Color) {
+    , bgImageColor((SDL_Color) {
     0, 0, 0, 0
-})
-, bgParticleImg(w, h, 500, 30.0f,30.0f,0.2f,0.8f)
+}, w, h)
+// , bgParticleImg(w, h, 500, 30.0f,30.0f,0.2f,0.8f)
 , homebrewWindow(w, h) {
-    bgImageColor.setImageColor((GX2Color) {
-        79, 153, 239, 255
-    }, 0);
-    bgImageColor.setImageColor((GX2Color) {
-        79, 153, 239, 255
-    }, 1);
-    bgImageColor.setImageColor((GX2Color) {
-        59, 159, 223, 255
-    }, 2);
-    bgImageColor.setImageColor((GX2Color) {
-        59, 159, 223, 255
-    }, 3);
+    // bgImageColor.setImageColor((SDL_Color) {
+    //     79, 153, 239, 255
+    // }, 0);
+    // bgImageColor.setImageColor((SDL_Color) {
+    //     79, 153, 239, 255
+    // }, 1);
+    // bgImageColor.setImageColor((SDL_Color) {
+    //     59, 159, 223, 255
+    // }, 2);
+    // bgImageColor.setImageColor((SDL_Color) {
+    //     59, 159, 223, 255
+    // }, 3);
     append(&bgImageColor);
-    append(&bgParticleImg);
+    // append(&bgParticleImg);
 
     for(int i = 0; i < 4; i++) {
         std::string filename = StringTools::strfmt("player%i_point.png", i+1);
@@ -58,7 +41,7 @@ MainWindow::MainWindow(int w, int h)
 MainWindow::~MainWindow() {
     remove(&homebrewWindow);
     remove(&bgImageColor);
-    remove(&bgParticleImg);
+    // remove(&bgParticleImg);
 
     while(!tvElements.empty()) {
         delete tvElements[0];
@@ -139,7 +122,7 @@ void MainWindow::update(GuiController *controller) {
     }
 }
 
-void MainWindow::drawDrc(CVideo *video) {
+void MainWindow::drawDrc(Renderer *video) {
     for(uint32_t i = 0; i < drcElements.size(); ++i) {
         drcElements[i]->draw(video);
     }
@@ -153,7 +136,7 @@ void MainWindow::drawDrc(CVideo *video) {
     }
 }
 
-void MainWindow::drawTv(CVideo *video) {
+void MainWindow::drawTv(Renderer *video) {
     for(uint32_t i = 0; i < tvElements.size(); ++i) {
         tvElements[i]->draw(video);
     }

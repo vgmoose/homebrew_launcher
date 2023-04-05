@@ -30,8 +30,11 @@
 #include <string>
 #include <strings.h>
 #include <algorithm>
+
+#include <sys/types.h>
 #include <sys/stat.h>
-#include <sys/dirent.h>
+#include <dirent.h>
+#include <cstdint>
 
 #include <fs/DirList.h>
 #include <utils/StringTools.h>
@@ -51,7 +54,7 @@ DirList::~DirList() {
     ClearList();
 }
 
-BOOL DirList::LoadPath(const std::string & folder, const char *filter, uint32_t flags, uint32_t maxDepth) {
+bool DirList::LoadPath(const std::string & folder, const char *filter, uint32_t flags, uint32_t maxDepth) {
     if(folder.empty())
         return false;
 
@@ -77,7 +80,7 @@ BOOL DirList::LoadPath(const std::string & folder, const char *filter, uint32_t 
     return InternalLoadPath(folderpath);
 }
 
-BOOL DirList::InternalLoadPath(std::string &folderpath) {
+bool DirList::InternalLoadPath(std::string &folderpath) {
     if(folderpath.size() < 3)
         return false;
 
@@ -89,7 +92,7 @@ BOOL DirList::InternalLoadPath(std::string &folderpath) {
         return false;
 
     while ((dirent = readdir(dir)) != 0) {
-        BOOL isDir = dirent->d_type & DT_DIR;
+        bool isDir = dirent->d_type & DT_DIR;
         const char *filename = dirent->d_name;
 
         if(isDir) {
@@ -116,7 +119,7 @@ BOOL DirList::InternalLoadPath(std::string &folderpath) {
         }
 
         if(Filter) {
-            char * fileext = strrchr(filename, '.');
+            char * fileext = strrchr((char*)filename, '.');
             if(!fileext)
                 continue;
 
@@ -131,7 +134,7 @@ BOOL DirList::InternalLoadPath(std::string &folderpath) {
     return true;
 }
 
-void DirList::AddEntrie(const std::string &filepath, const char * filename, BOOL isDir) {
+void DirList::AddEntrie(const std::string &filepath, const char * filename, bool isDir) {
     if(!filename)
         return;
 
@@ -168,7 +171,7 @@ const char * DirList::GetFilename(int32_t ind) const {
     return StringTools::FullpathToFilename(FileInfo[ind].FilePath);
 }
 
-static BOOL SortCallback(const DirEntry & f1, const DirEntry & f2) {
+static bool SortCallback(const DirEntry & f1, const DirEntry & f2) {
     if(f1.isDir && !(f2.isDir))
         return true;
     if(!(f1.isDir) && f2.isDir)
@@ -190,7 +193,7 @@ void DirList::SortList() {
         std::sort(FileInfo.begin(), FileInfo.end(), SortCallback);
 }
 
-void DirList::SortList(BOOL (*SortFunc)(const DirEntry &a, const DirEntry &b)) {
+void DirList::SortList(bool (*SortFunc)(const DirEntry &a, const DirEntry &b)) {
     if(FileInfo.size() > 1)
         std::sort(FileInfo.begin(), FileInfo.end(), SortFunc);
 }

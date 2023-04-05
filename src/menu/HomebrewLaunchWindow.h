@@ -1,28 +1,18 @@
-/****************************************************************************
- * Copyright (C) 2015 Dimok
- *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- ****************************************************************************/
 #ifndef _HOMEBREW_LAUNCHER_WINDOW_H_
 #define _HOMEBREW_LAUNCHER_WINDOW_H_
 
-#include "gui/Gui.h"
-#include "gui/GuiFrame.h"
+
+#include <gui/GuiFrame.h>
+#include <gui/GuiText.h>
+#include <gui/GuiImage.h>
+#include <gui/GuiButton.h>
+#include <gui/GuiTrigger.h>
+#include <gui/GuiSound.h>
+#include <gui/GuiTextureData.h>
 
 class HomebrewLaunchWindow : public GuiFrame, public sigslot::has_slots<> {
 public:
-    HomebrewLaunchWindow(const std::string & launchPath, GuiImageData * iconImgData);
+    HomebrewLaunchWindow(const std::string & launchPath, GuiTextureData * iconImgData);
     virtual ~HomebrewLaunchWindow();
 
     sigslot::signal1<GuiElement *> backButtonClicked;
@@ -38,10 +28,10 @@ private:
     void OnCloseEffectFinish(GuiElement *element);
 
     GuiSound *buttonClickSound;
-    GuiImageData * backgroundImgData;
+    GuiTextureData * backgroundImgData;
     GuiImage backgroundImg;
 
-    GuiImageData *buttonImgData;
+    GuiTextureData *buttonImgData;
     GuiImage iconImage;
 
     GuiText titleText;

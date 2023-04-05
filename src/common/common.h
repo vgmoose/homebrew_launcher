@@ -5,10 +5,10 @@
 extern "C" {
 #endif
 
-#include "os_defs.h"
+#include "wiiu_common.h"
 
-#define HBL_VERSION                 "v2.1"
-#define HBL_VERSION_INT             200
+#define HBL_VERSION                 "v3.0"
+#define HBL_VERSION_INT             300
 
 #define CAFE_OS_SD_PATH             "/vol/external01"
 #define SD_PATH                     "fs:"

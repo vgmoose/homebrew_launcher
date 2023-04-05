@@ -1,16 +1,13 @@
 #include <algorithm>
 #include <string>
 #include <string.h>
-#include <coreinit/ios.h>
-
 #include "HomebrewLoader.h"
 #include "fs/CFile.hpp"
-#include "utils/logger.h"
 #include "utils/StringTools.h"
 
 HomebrewLoader * HomebrewLoader::loadToMemoryAsync(const std::string & file) {
     HomebrewLoader * loader = new HomebrewLoader(file);
-    loader->resumeThread();
+    // loader->resumeThread();
     return loader;
 }
 
@@ -86,7 +83,7 @@ int HomebrewLoader::loadToMemory() {
         return INVALID_INPUT;
     }
 
-    log_printf("Loading file %s\n", filepath.c_str());
+    printf("Loading file %s\n", filepath.c_str());
 
     char * repl = (char*)"fs:/vol/external01/";
     char * with = (char*)"";
@@ -103,7 +100,7 @@ int HomebrewLoader::loadToMemory() {
             LOAD_REQUEST request;
             memset(&request, 0, sizeof(request));
             
-            log_printf("Loading file %s\n", path);
+            printf("Loading file %s\n", path);
             request.command = 0xFC; // IPC_CUSTOM_LOAD_CUSTOM_RPX;
             request.target = 0;     // LOAD_FILE_TARGET_SD_CARD
             request.filesize = 0;   // unknown
@@ -113,15 +110,7 @@ int HomebrewLoader::loadToMemory() {
 
             free(path);
 
-            int mcpFd = IOS_Open("/dev/mcp", (IOSOpenMode)0);
-            if(mcpFd >= 0) {
-                int out = 0;
-                IOS_Ioctl(mcpFd, 100, &request, sizeof(request), &out, sizeof(out));
-                IOS_Close(mcpFd);
-                if(out == 2) {
-                    return true;
-                }
-            }
+            // TODO: launch using libwuhbtools / rpxloader
         }
     }
 

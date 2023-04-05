@@ -6,7 +6,6 @@
 #include <string.h>
 #include <fcntl.h>
 #include <unistd.h>
-#include <wut_types.h>
 
 class CFile {
 public:
@@ -25,7 +24,7 @@ public:
     int32_t open(const std::string & filepath, eOpenTypes mode);
     int32_t open(const uint8_t * memory, int32_t memsize);
 
-    BOOL isOpen() const {
+    bool isOpen() const {
         if(iFd >= 0)
             return true;
 

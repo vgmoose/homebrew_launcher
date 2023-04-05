@@ -31,12 +31,11 @@
 #include <stdio.h>
 #include <wchar.h>
 #include <strings.h>
-#include <wut_types.h>
 #include <stdio.h>
 #include <utils/StringTools.h>
 
 
-BOOL StringTools::EndsWith(const std::string& a, const std::string& b) {
+bool StringTools::EndsWith(const std::string& a, const std::string& b) {
     if (b.size() > a.size())
         return false;
     return std::equal(a.begin() + a.size() - b.size(), a.end(), b.begin());
@@ -141,7 +140,7 @@ std::string StringTools::strfmt(const char * format, ...) {
     return str;
 }
 
-BOOL StringTools::char2wchar_t(const char * strChar, wchar_t * dest) {
+bool StringTools::char2wchar_t(const char * strChar, wchar_t * dest) {
     if(!strChar || !dest)
         return false;
 
@@ -179,7 +178,7 @@ int32_t StringTools::strextcmp(const char * string, const char * extension, char
     if(!string || !extension)
         return -1;
 
-    char *ptr = strrchr(string, seperator);
+    char *ptr = strrchr((char*)string, seperator);
     if(!ptr)
         return -1;
 

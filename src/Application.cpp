@@ -1,51 +1,31 @@
-/****************************************************************************
- * Copyright (C) 2015 Dimok
- *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- ****************************************************************************/
-#include <coreinit/core.h>
-#include <coreinit/foreground.h>
-#include <coreinit/title.h>
-#include <proc_ui/procui.h>
-#include <sysapp/launch.h>
 #include "Application.h"
 #include "common/common.h"
-#include <gui/FreeTypeGX.h>
-#include <gui/VPadController.h>
-#include <gui/WPadController.h>
 #include "resources/Resources.h"
-#include <gui/sounds/SoundHandler.hpp>
-#include "system/memory.h"
-#include "system/AsyncDeleter.h"
-#include "utils/logger.h"
+
+#include <gui/GuiController.h>
+#include <gui/input/SDLControllerWiiUProContoller.h>
+#include <gui/input/SDLControllerWiiUGamepad.h>
+#include <gui/system/SDLSystem.h>
+
+// #include <gui/sounds/SoundHandler.hpp>
 
 Application *Application::applicationInstance = NULL;
 bool Application::exitApplication = false;
 bool Application::quitRequest = false;
 
 Application::Application()
-    : CThread(CThread::eAttributeAffCore1 | CThread::eAttributePinnedAff, 0, 0x20000)
-    , bgMusic(NULL)
+    // : CThread(CThread::eAttributeAffCore1 | CThread::eAttributePinnedAff, 0, 0x20000)
+    : bgMusic(NULL)
     , video(NULL)
     , mainWindow(NULL)
     , fontSystem(NULL)
     , exitCode(EXIT_RELAUNCH_ON_LOAD) {
-    controller[0] = new VPadController(GuiTrigger::CHANNEL_1);
-    controller[1] = new WPadController(GuiTrigger::CHANNEL_2);
-    controller[2] = new WPadController(GuiTrigger::CHANNEL_3);
-    controller[3] = new WPadController(GuiTrigger::CHANNEL_4);
-    controller[4] = new WPadController(GuiTrigger::CHANNEL_5);
+        // TODO: handle wiiu controls better?
+    controller[0] = new SDLControllerWiiUGamepad(GuiTrigger::CHANNEL_1);
+    controller[1] = new SDLControllerWiiUProContoller(GuiTrigger::CHANNEL_2);
+    controller[2] = new SDLControllerWiiUProContoller(GuiTrigger::CHANNEL_3);
+    controller[3] = new SDLControllerWiiUProContoller(GuiTrigger::CHANNEL_4);
+    controller[4] = new SDLControllerWiiUProContoller(GuiTrigger::CHANNEL_5);
 
     //! load resources
     Resources::LoadFiles("fs:/vol/external01/wiiu/apps/homebrew_launcher/resources");
@@ -58,36 +38,40 @@ Application::Application()
 
     exitApplication = false;
 
+#ifndef PC
     ProcUIInit(OSSavesDone_ReadyToRelease);
+#endif
 }
 
 Application::~Application() {
-    log_printf("Destroy music\n");
+    printf("Destroy music\n");
 
     delete bgMusic;
 
-    log_printf("Destroy controller\n");
+    printf("Destroy controller\n");
 
     for(int i = 0; i < 5; i++)
         delete controller[i];
 
-    log_printf("Destroy async deleter\n");
-    AsyncDeleter::destroyInstance();
+    // printf("Destroy async deleter\n");
+    // AsyncDeleter::destroyInstance();
 
-    log_printf("Clear resources\n");
+    printf("Clear resources\n");
     Resources::Clear();
 
-    log_printf("Stop sound handler\n");
-    SoundHandler::DestroyInstance();
+    // printf("Stop sound handler\n");
+    // SoundHandler::DestroyInstance();
 
+#ifndef PC
     ProcUIShutdown();
+#endif
 }
 
 int Application::exec() {
     //! start main GX2 thread
-    resumeThread();
+    // resumeThread();
     //! now wait for thread to finish
-    shutdownThread();
+    // shutdownThread();
 
     return exitCode;
 }
@@ -99,7 +83,8 @@ void Application::quit(int code) {
 }
 
 void Application::fadeOut() {
-    GuiImage fadeOut(video->getTvWidth(), video->getTvHeight(), (GX2Color) {
+#ifndef PC
+    GuiImage fadeOut(video->getTvWidth(), video->getTvHeight(), (SDL_Color) {
         0, 0, 0, 255
     });
 
@@ -110,17 +95,17 @@ void Application::fadeOut() {
         fadeOut.setAlpha(i / 255.0f);
 
         //! start rendering DRC
-        video->prepareDrcRendering();
+        // video->prepareDrcRendering();
         mainWindow->drawDrc(video);
 
         GX2SetDepthOnlyControl(GX2_DISABLE, GX2_DISABLE, GX2_COMPARE_FUNC_ALWAYS);
         fadeOut.draw(video);
         GX2SetDepthOnlyControl(GX2_ENABLE, GX2_ENABLE, GX2_COMPARE_FUNC_LEQUAL);
 
-        video->drcDrawDone();
+        // video->drcDrawDone();
 
         //! start rendering TV
-        video->prepareTvRendering();
+        // video->prepareTvRendering();
 
         mainWindow->drawTv(video);
 
@@ -128,79 +113,57 @@ void Application::fadeOut() {
         fadeOut.draw(video);
         GX2SetDepthOnlyControl(GX2_ENABLE, GX2_ENABLE, GX2_COMPARE_FUNC_LEQUAL);
 
-        video->tvDrawDone();
+        // video->tvDrawDone();
 
         //! as last point update the effects as it can drop elements
         mainWindow->updateEffects();
 
-        video->waitForVSync();
+        // video->waitForVSync();
     }
 
     //! one last cleared black screen
-    video->prepareDrcRendering();
-    video->drcDrawDone();
-    video->prepareTvRendering();
-    video->tvDrawDone();
-    video->waitForVSync();
-    video->tvEnable(false);
-    video->drcEnable(false);
+    // video->prepareDrcRendering();
+    // video->drcDrawDone();
+    // video->prepareTvRendering();
+    // video->tvDrawDone();
+    // video->waitForVSync();
+    // video->tvEnable(false);
+    // video->drcEnable(false);
+#endif
 }
 
 bool Application::procUI(void) {
     bool executeProcess = false;
 
+#ifndef PC
     switch(ProcUIProcessMessages(true)) {
     case PROCUI_STATUS_EXITING: {
-        log_printf("PROCUI_STATUS_EXITING\n");
+        printf("PROCUI_STATUS_EXITING\n");
         exitCode = EXIT_SUCCESS;
         exitApplication = true;
         break;
     }
     case PROCUI_STATUS_RELEASE_FOREGROUND: {
-        log_printf("PROCUI_STATUS_RELEASE_FOREGROUND\n");
+        printf("PROCUI_STATUS_RELEASE_FOREGROUND\n");
         if(video != NULL) {
             // we can turn of the screen but we don't need to and it will display the last image
             video->tvEnable(true);
             video->drcEnable(true);
 
-            log_printf("delete fontSystem\n");
+            printf("delete fontSystem\n");
             delete fontSystem;
             fontSystem = NULL;
 
-            log_printf("delete video\n");
+            printf("delete video\n");
             delete video;
             video = NULL;
-
-            log_printf("deinitialze memory\n");
-            memoryRelease();
-            ProcUIDrawDoneRelease();
-        } else {
-            ProcUIDrawDoneRelease();
         }
+        ProcUIDrawDoneRelease();
         break;
     }
     case PROCUI_STATUS_IN_FOREGROUND: {
         if(!quitRequest) {
-            if(video == NULL) {
-                log_printf("PROCUI_STATUS_IN_FOREGROUND\n");
-                log_printf("initialze memory\n");
-                memoryInitialize();
-
-                log_printf("Initialize video\n");
-                video = new CVideo(GX2_TV_SCAN_MODE_720P, GX2_DRC_RENDER_MODE_SINGLE);
-                log_printf("Video size %i x %i\n", video->getTvWidth(), video->getTvHeight());
-
-                //! setup default Font
-                log_printf("Initialize main font system\n");
-                FreeTypeGX *fontSystem = new FreeTypeGX(Resources::GetFile("font.ttf"), Resources::GetFileSize("font.ttf"), true);
-                GuiText::setPresetFont(fontSystem);
-
-                if(mainWindow == NULL) {
-                    log_printf("Initialize main window\n");
-                    mainWindow = new MainWindow(video->getTvWidth(), video->getTvHeight());
-                }
-
-            }
+            printf("PROCUI_STATUS_IN_FOREGROUND\n");
             executeProcess = true;
         }
         break;
@@ -209,22 +172,48 @@ bool Application::procUI(void) {
     default:
         break;
     }
+#endif
 
     return executeProcess;
 }
 
+// TODO: actually measure TV on wiiu
+int getTvWidth() {
+    return 1280;
+}
+
+int getTvHeight() {
+    return 720;
+}
 
 void Application::executeThread(void) {
-    log_printf("Entering main loop\n");
+    printf("Entering main loop\n");
 
+    // printf("Initialize video\n");
+    SDLSystem sdlSystem;
+    Renderer* mainRenderer = sdlSystem.getRenderer();
+    video = new Renderer(mainRenderer->getRenderer(), SDL_PIXELFORMAT_RGBA8888);
+    printf("Video size %i x %i\n", getTvWidth(), getTvHeight());
+
+    //! setup default Font
+    printf("Initialize main font system\n");
+    GuiFont *fontSystem = new GuiFont(Resources::GetFile("font.ttf"), Resources::GetFileSize("font.ttf"), mainRenderer);
+    GuiText::setPresetFont(fontSystem);
+
+    if(mainWindow == NULL) {
+        printf("Initialize main window\n");
+        mainWindow = new MainWindow(getTvWidth(), getTvHeight());
+    }
     //! main GX2 loop (60 Hz cycle with max priority on core 1)
     while(!exitApplication) {
-        if(procUI() == false)
-            continue;
+        procUI();
 
         //! Read out inputs
+        SDL_Event event;
+        SDL_PollEvent(&event);
         for(int i = 0; i < 5; i++) {
-            if(controller[i]->update(video->getTvWidth(), video->getTvHeight()) == false)
+            // TODO: oob check
+            if(controller[i]->update(&event, getTvWidth(), getTvHeight()) == false)
                 continue;
 
             //! update controller states
@@ -232,30 +221,30 @@ void Application::executeThread(void) {
         }
 
         //! start rendering DRC
-        video->prepareDrcRendering();
+        // video->prepareDrcRendering();
         mainWindow->drawDrc(video);
-        video->drcDrawDone();
+        // video->drcDrawDone();
 
         //! start rendering TV
-        video->prepareTvRendering();
+        // video->prepareTvRendering();
         mainWindow->drawTv(video);
-        video->tvDrawDone();
+        // video->tvDrawDone();
 
         //! enable screen after first frame render
-        if(video->getFrameCount() == 0) {
-            video->tvEnable(true);
-            video->drcEnable(true);
-        }
+        // if(video->getFrameCount() == 0) {
+        //     video->tvEnable(true);
+        //     video->drcEnable(true);
+        // }
 
         //! as last point update the effects as it can drop elements
         mainWindow->updateEffects();
 
-        video->waitForVSync();
+        // video->waitForVSync();
 
         //! transfer elements to real delete list here after all processes are finished
         //! the elements are transfered to another list to delete the elements in a separate thread
         //! and avoid blocking the GUI thread
-        AsyncDeleter::triggerDeleteProcess();
+        // AsyncDeleter::triggerDeleteProcess();
     }
 
     //! in case we exit to a homebrew let's smoothly fade out
@@ -263,18 +252,15 @@ void Application::executeThread(void) {
         fadeOut();
     }
 
-    log_printf("delete mainWindow\n");
+    printf("delete mainWindow\n");
     delete mainWindow;
     mainWindow = NULL;
 
-    log_printf("delete fontSystem\n");
+    printf("delete fontSystem\n");
     delete fontSystem;
     fontSystem = NULL;
 
-    log_printf("delete video\n");
+    printf("delete video\n");
     delete video;
     video = NULL;
-
-    log_printf("deinitialze memory\n");
-    memoryRelease();
 }

@@ -5,10 +5,9 @@
 #include <string>
 
 #include "ProgressWindow.h"
-#include "system/CThread.h"
-#include "gui/sigslot.h"
+#include <gui/sigslot.h>
 
-class HomebrewLoader : public GuiFrame, public CThread {
+class HomebrewLoader : public GuiFrame {
 public:
     enum eLoadResults {
         SUCCESS = 0,
@@ -26,18 +25,18 @@ private:
 
     HomebrewLoader(const std::string & file)
         : GuiFrame(1280, 720)
-        , CThread(CThread::eAttributeAffCore0 | CThread::eAttributePinnedAff)
+        // , CThread(CThread::eAttributeAffCore0 | CThread::eAttributePinnedAff)
         , filepath(file)
-        , bgImageColor(1280, 720, (GX2Color) {
+        , bgImageColor((SDL_Color) {
         0, 0, 0, 0
-    }) {
+    }, 1280, 720) {
         append(&bgImageColor);
     }
     void executeThread();
 
     int loadToMemory();
 
-    static void loadCallback(CThread *thread, void *arg);
+    // static void loadCallback(CThread *thread, void *arg);
 
     const std::string filepath;
     GuiImage bgImageColor;

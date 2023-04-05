@@ -19,18 +19,17 @@
 #include "Application.h"
 #include "fs/DirList.h"
 #include "fs/FSUtils.h"
-#include "system/AsyncDeleter.h"
 #include "utils/HomebrewXML.h"
 #include "resources/Resources.h"
 #include "utils/utils.h"
-#include "utils/logger.h"
 #include "HomebrewLaunchWindow.h"
 #include "HomebrewLoader.h"
-#include <sysapp/launch.h>
 
 #define DEFAULT_WIILOAD_PORT        4299
 
 #define MAX_BUTTONS_ON_PAGE     4
+
+#define sdlWhite               (SDL_Color) {255, 255, 255, 255}
 
 HomebrewWindow::HomebrewWindow(int w, int h)
     : GuiFrame(w, h)
@@ -42,7 +41,7 @@ HomebrewWindow::HomebrewWindow(int w, int h)
     , arrowLeftImage(arrowLeftImageData)
     , arrowRightButton(arrowRightImage.getWidth(), arrowRightImage.getHeight())
     , arrowLeftButton(arrowLeftImage.getWidth(), arrowLeftImage.getHeight())
-    , hblVersionText("Homebrew Launcher " HBL_VERSION " by Dimok", 32, glm::vec4(1.0f))
+    , hblVersionText("Homebrew Launcher v3 (" HBL_VERSION ") by Dimok and friends", 32, sdlWhite)
     , touchTrigger(GuiTrigger::CHANNEL_1, GuiTrigger::VPAD_TOUCH)
     , wpadTouchTrigger(GuiTrigger::CHANNEL_2 | GuiTrigger::CHANNEL_3 | GuiTrigger::CHANNEL_4 | GuiTrigger::CHANNEL_5, GuiTrigger::BUTTON_A)
     , buttonLTrigger(GuiTrigger::CHANNEL_ALL, GuiTrigger::BUTTON_L | GuiTrigger::BUTTON_LEFT, true)
@@ -88,7 +87,7 @@ HomebrewWindow::HomebrewWindow(int w, int h)
         FSUtils::LoadFileToMem((homebrewPath + "/icon.png").c_str(), &iconData, &iconDataSize);
 
         if(iconData != NULL) {
-            homebrewButtons[idx].iconImgData = new GuiImageData(iconData, iconDataSize);
+            homebrewButtons[idx].iconImgData = new GuiTextureData(iconData, iconDataSize);
             free(iconData);
             iconData = NULL;
         }
@@ -110,14 +109,14 @@ HomebrewWindow::HomebrewWindow(int w, int h)
         if(strncmp(cpName, "fs:/vol/external01/wiiu/apps/", strlen("fs:/vol/external01/wiiu/apps/")) == 0)
             cpName += strlen("fs:/vol/external01/wiiu/apps/");
 
-        homebrewButtons[idx].nameLabel = new GuiText(cpName, 32, glm::vec4(1.0f));
+        homebrewButtons[idx].nameLabel = new GuiText(cpName, 32, sdlWhite);
         homebrewButtons[idx].nameLabel->setAlignment(ALIGN_LEFT | ALIGN_MIDDLE);
-        homebrewButtons[idx].nameLabel->setMaxWidth(350, GuiText::SCROLL_HORIZONTAL);
+        homebrewButtons[idx].nameLabel->setMaxWidth(350);
         homebrewButtons[idx].nameLabel->setPosition(256 + 80, 20);
 
-        homebrewButtons[idx].descriptionLabel = new GuiText(cpDescription, 32, glm::vec4(1.0f));
+        homebrewButtons[idx].descriptionLabel = new GuiText(cpDescription, 32, sdlWhite);
         homebrewButtons[idx].descriptionLabel->setAlignment(ALIGN_LEFT | ALIGN_MIDDLE);
-        homebrewButtons[idx].descriptionLabel->setMaxWidth(350, GuiText::SCROLL_HORIZONTAL);
+        homebrewButtons[idx].descriptionLabel->setMaxWidth(350);
         homebrewButtons[idx].descriptionLabel->setPosition(256 + 80, -20);
 
         homebrewButtons[idx].button = new GuiButton(homebrewButtonImgData->getWidth(), homebrewButtonImgData->getHeight());
@@ -186,21 +185,21 @@ HomebrewWindow::~HomebrewWindow() {
 void HomebrewWindow::OnOpenEffectFinish(GuiElement *element) {
     //! once the menu is open reset its state and allow it to be "clicked/hold"
     element->effectFinished.disconnect(this);
-    element->clearState(GuiElement::STATE_DISABLED);
+    element->clearState(GuiElement::STATE_DISABLED, -1);
 }
 
 void HomebrewWindow::OnCloseEffectFinish(GuiElement *element) {
     //! remove element from draw list and push to delete queue
     remove(element);
-    AsyncDeleter::pushForDelete(element);
+    // AsyncDeleter::pushForDelete(element);
 
     for(uint32_t i = 0; i < homebrewButtons.size(); i++) {
-        homebrewButtons[i].button->clearState(GuiElement::STATE_DISABLED);
+        homebrewButtons[i].button->clearState(GuiElement::STATE_DISABLED, -1);
     }
 }
 
 void HomebrewWindow::OnLaunchBoxCloseClick(GuiElement *element) {
-    element->setState(GuiElement::STATE_DISABLED);
+    element->setState(GuiElement::STATE_DISABLED, -1);
     element->setEffect(EFFECT_FADE, -10, 0);
     element->effectFinished.connect(this, &HomebrewWindow::OnCloseEffectFinish);
 }
@@ -212,7 +211,7 @@ void HomebrewWindow::OnHomebrewButtonClick(GuiButton *button, const GuiControlle
         if(button == homebrewButtons[i].button) {
             HomebrewLaunchWindow * launchBox = new HomebrewLaunchWindow(homebrewButtons[i].execPath, homebrewButtons[i].iconImgData);
             launchBox->setEffect(EFFECT_FADE, 10, 255);
-            launchBox->setState(GuiElement::STATE_DISABLED);
+            launchBox->setState(GuiElement::STATE_DISABLED, -1);
             launchBox->setPosition(0.0f, 30.0f);
             launchBox->effectFinished.connect(this, &HomebrewWindow::OnOpenEffectFinish);
             launchBox->backButtonClicked.connect(this, &HomebrewWindow::OnLaunchBoxCloseClick);
@@ -225,7 +224,7 @@ void HomebrewWindow::OnHomebrewButtonClick(GuiButton *button, const GuiControlle
 
     if(disableButtons) {
         for(uint32_t i = 0; i < homebrewButtons.size(); i++) {
-            homebrewButtons[i].button->setState(GuiElement::STATE_DISABLED);
+            homebrewButtons[i].button->setState(GuiElement::STATE_DISABLED, -1);
         }
     }
 }
@@ -253,7 +252,7 @@ void HomebrewWindow::OnRightArrowClick(GuiButton *button, const GuiController *c
     }
 }
 
-void HomebrewWindow::draw(CVideo *pVideo) {
+void HomebrewWindow::draw(Renderer *pVideo) {
     bool bUpdatePositions = false;
 
     if(currentLeftPosition < targetLeftPosition) {

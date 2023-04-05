@@ -1,31 +1,21 @@
-/****************************************************************************
- * Copyright (C) 2015 Dimok
- *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- ****************************************************************************/
 #ifndef _HOMEBREW_WINDOW_H_
 #define _HOMEBREW_WINDOW_H_
 
-#include "gui/Gui.h"
-#include "gui/GuiFrame.h"
+#include <gui/GuiFrame.h>
+#include <gui/GuiButton.h>
+#include <gui/GuiText.h>
+#include <gui/GuiImage.h>
+#include <gui/GuiTrigger.h>
+#include <gui/GuiSound.h>
+#include <gui/GuiTextureData.h>
+#include <gui/GuiController.h>
 
 class HomebrewWindow : public GuiFrame, public sigslot::has_slots<> {
 public:
     HomebrewWindow(int w, int h);
     virtual ~HomebrewWindow();
 
-    void draw(CVideo *pVideo);
+    void draw(Renderer *pVideo);
 
 private:
     void OnOpenEffectFinish(GuiElement *element);
@@ -36,10 +26,10 @@ private:
     void OnRightArrowClick(GuiButton *button, const GuiController *controller, GuiTrigger *trigger);
 
     GuiSound *buttonClickSound;
-    GuiImageData * homebrewButtonImgData;
+    GuiTextureData * homebrewButtonImgData;
 
-    GuiImageData* arrowRightImageData;
-    GuiImageData* arrowLeftImageData;
+    GuiTextureData* arrowRightImageData;
+    GuiTextureData* arrowLeftImageData;
     GuiImage arrowRightImage;
     GuiImage arrowLeftImage;
     GuiButton arrowRightButton;
@@ -52,7 +42,7 @@ private:
         GuiButton *button;
         GuiText *nameLabel;
         GuiText *descriptionLabel;
-        GuiImageData *iconImgData;
+        GuiTextureData *iconImgData;
         GuiImage *iconImg;
     } homebrewButton;
 

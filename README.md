@@ -1,78 +1,54 @@
-# WiiU Homebrew Launcher RPX
+# Homebrew Launcher v3
 
 The Homebrew Launcher is a WiiU homebrew that lists homebrew applications located on a SD card and permits launching them (similar to the Homebrew Channel of the Wii).
 
-#### Usage
+## Usage
 
-To use the Homebrew Launcher (or HBL, for short) you must copy homebrew_launcher.rpx into SD:/wiiu/apps/homebrew_launcher/homebrew_launcher.rpx.
+To use the Homebrew Launcher (or HBL, for short) you must copy homebrew_launcher.wuhb into `sd:/wiiu/apps/homebrew_launcher/homebrew_launcher.wuhb`.
 
-To start the Homebrew Launcher you need to run [MochaLite](https://github.com/wiiu-env/MochaLite) and open the "Health and Safety"-app.
+To start the Homebrew Launcher you need to install [Aroma](https://aroma.foryour.cafe/).
 
-The apps that will be listed are should be in the following path /wiiu/apps/homebrew_name/some_elf_name.rpx on the root of the SD card. A meta.xml and an icon.png (256x96) are optional. Here is an example:
+The apps (WUHB and RPX files) that will be listed are should be in the following path `sd:/wiiu/apps/`, and can be in a folder. If the wuhb/rpx is in a folder, an optional meta.xml and/or icon.png can be provided to provide additional information. If both an RPX and WUHB are provided (for legacy purposes), the WUHB is prioritized. The SD may look as follows:
 
 - sd:/
   - wiiu/
     - apps/
      - homebrew_launcher/
+        - homebrew_launcher.wuhb
         - homebrew_launcher.rpx
         - meta.xml
         - icon.png
-     - loadiine_gx2/
-       - loadiine_gx2.rpx
-       - meta.xml
-       - icon.png
-     - ddd/
-       - ddd.rpx
-       - meta.xml
-       - icon.png
-     - ftpiiu/
-       - ftpiiu.rpx
-       - meta.xml
-       - icon.png
+     - app_1/
+        - app_1.wuhb
+        - meta.xml
+     - app_2.wuhb
+     - app_3.wuhb
+     - app_4/
+        - app_4.rpx
+        - meta.xml
+        - icon.png
+     - app_5/
+        - app_5.wuhb
+        - app_5.rpx
 
-#### Building the Homebrew Launcher
-To build the main application devkitPPC is required as well as some additionally libraries. If not yet done export the path of devkitPPC and devkitPro to the evironment variables DEVKITPRO and DEVKITPPC. 
+## Building the Homebrew Launcher
+Clone the respository recursively with `git clone --recursive`, and run `make`. You can also build for PC targets using SDL with `make pc`.
 
-Make sure you have [wut](https://github.com/devkitPro/wut/) installed.
+After, both homebrew_launcher.wuhb and homebrew_launcher.rpx should be in the current directory. (Or homebrew_launcher.exe for PC).
 
-In addition you need: 
-- [libgui](https://github.com/wiiu-env/libgui) for the gui elements.
-- The ppc-portlibs `pacman -Syu ppc-portlibs`
+## Building an application for the Homebrew Launcher 
+For an example on how to build an application for the HBL check out the [wut samples](https://github.com/decaf-emu/wut/tree/master/samples).
 
-All remaining is to enter the main application path and enter "make". You should get a homebrew_launcher.rpx in the main path.
+## Legacy Information
+This repo is an updated version of HBL for the Aroma environment that builds to a WUHB (Wii U HomeBrew) file. For the original, see [dimok789/homebrew_launcher](https://github.com/dimok789/homebrew_launcher).
 
-#### Building an applicationfor the Homebrew Launcher 
-For an example on how to build an application for the HBL check out the [wut samples](https://github.com/devkitPro/wut/tree/master/samples).
+This updated HBL is **not** able to run legacy WiiU ELF files, and these files will display as unsupported. If you need to run an older WiiU homebrew, try using [Tiramisu](https://tiramisu.foryour.cafe/) and the previous version of HBL.
 
-#### Meta XML
-
-The meta.xml is optional and can be put in the same path as the homebrew ELF file to display additional information about the homebrew.
-
-Here is a XML example:
-
-    <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-    <app version="1">
-    <name>name</name>
-    <coder>coder<coder>
-    <version>app version</version>
-    <release_date>app release date</release_date>
-    <short_description>short description</short_description> 
-    <long_description>long description</long_description> 
-    </app>
-
-#### Icon PNG
-The icon.png has to be of the resolution 256 x 96 and can be placed in the same path as the homebrew ELF file. This file is optional and shows an icon for the homebrew inside the homebrew launcher.
-
-### Credits
+## Credits
 * Dimok
 * orboditilt
-* many contributors with their pull requests
-
-##### WUT RPX toolchain which is used to build RPX version of HBL
 * exjam
 * shinyquagsire23
-* several more contributors
-
-##### HBL channel artwork / boot sound and video
 * cathor
 * Maschell
+* several more contributors

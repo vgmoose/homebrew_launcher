@@ -3,9 +3,11 @@
 #include <stdio.h>
 #include <unistd.h>
 #include <fcntl.h>
+#include <cstdint>
+#include <sys/stat.h>
+
 #include "fs/FSUtils.h"
 #include "fs/CFile.hpp"
-#include "utils/logger.h"
 
 int32_t FSUtils::LoadFileToMem(const char *filepath, uint8_t **inbuffer, uint32_t *size) {
     //! always initialze input
@@ -132,7 +134,7 @@ int32_t FSUtils::CreateSubfolder(const char * fullpath) {
 int32_t FSUtils::saveBufferToFile(const char * path, void * buffer, uint32_t size) {
     CFile file(path, CFile::WriteOnly);
     if (!file.isOpen()) {
-        DEBUG_FUNCTION_LINE("Failed to open %s\n",path);
+        // DEBUG_FUNCTION_LINE("Failed to open %s\n",path);
         return 0;
     }
     int32_t written = file.write((const uint8_t*) buffer, size);

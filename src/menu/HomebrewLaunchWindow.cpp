@@ -23,28 +23,26 @@
 #include "resources/Resources.h"
 #include "utils/utils.h"
 #include "Application.h"
-#include "system/AsyncDeleter.h"
 
-#include <sysapp/launch.h>
+#define sdlWhite (SDL_Color) { 255, 255, 255, 255 }
 
-
-HomebrewLaunchWindow::HomebrewLaunchWindow(const std::string & launchPath, GuiImageData * iconImgData)
+HomebrewLaunchWindow::HomebrewLaunchWindow(const std::string & launchPath, GuiTextureData * iconImgData)
     : GuiFrame(0, 0)
     , buttonClickSound(Resources::GetSound("button_click.mp3"))
     , backgroundImgData(Resources::GetImageData("launchMenuBox.png"))
     , backgroundImg(backgroundImgData)
     , buttonImgData(Resources::GetImageData("button.png"))
     , iconImage(iconImgData)
-    , titleText((char*)NULL, 42, glm::vec4(1.0f))
-    , versionText("Version:", 32, glm::vec4(1.0f))
-    , versionValueText((char*)NULL, 32, glm::vec4(1.0f))
-    , authorText("Author:", 32, glm::vec4(1.0f))
-    , authorValueText((char*)NULL, 32, glm::vec4(1.0f))
-    , descriptionText((char*)NULL, 28, glm::vec4(1.0f))
-    , loadBtnLabel("Load", 32, glm::vec4(1.0f))
+    , titleText((char*)NULL, 42, sdlWhite)
+    , versionText("Version:", 32, sdlWhite)
+    , versionValueText((char*)NULL, 32, sdlWhite)
+    , authorText("Author:", 32, sdlWhite)
+    , authorValueText((char*)NULL, 32, sdlWhite)
+    , descriptionText((char*)NULL, 28, sdlWhite)
+    , loadBtnLabel("Load", 32, sdlWhite)
     , loadImg(buttonImgData)
     , loadBtn(loadImg.getWidth(), loadImg.getHeight())
-    , backBtnLabel("Back", 32, glm::vec4(1.0f))
+    , backBtnLabel("Back", 32, sdlWhite)
     , backImg(buttonImgData)
     , backBtn(backImg.getWidth(), backImg.getHeight())
     , touchTrigger(GuiTrigger::CHANNEL_1, GuiTrigger::VPAD_TOUCH)
@@ -72,7 +70,7 @@ HomebrewLaunchWindow::HomebrewLaunchWindow(const std::string & launchPath, GuiIm
     titleText.setText(cpName);
     titleText.setAlignment(ALIGN_CENTER | ALIGN_MIDDLE);
     titleText.setPosition(0, yOffset);
-    titleText.setMaxWidth(width - 100, GuiText::DOTTED);
+    titleText.setMaxWidth(width - 100);
     append(&titleText);
 
     float scaleFactor = 1.0f;
@@ -87,10 +85,11 @@ HomebrewLaunchWindow::HomebrewLaunchWindow(const std::string & launchPath, GuiIm
     versionText.setPosition(width - xOffset, yOffset);
     append(&versionText);
 
-    versionValueText.setTextf("%s", xmlReadSuccess ? metaXml.GetVersion() : launchPath.c_str());
+    auto versionText = xmlReadSuccess ? metaXml.GetVersion() : launchPath.c_str();
+    versionValueText.setText(versionText);
     versionValueText.setAlignment(ALIGN_LEFT | ALIGN_MIDDLE);
     versionValueText.setPosition(width - xOffset + 100, yOffset);
-    versionValueText.setMaxWidth(xOffset - 150, GuiText::DOTTED);
+    versionValueText.setMaxWidth(xOffset - 150);
     append(&versionValueText);
     yOffset -= 30;
 
@@ -98,17 +97,17 @@ HomebrewLaunchWindow::HomebrewLaunchWindow(const std::string & launchPath, GuiIm
     authorText.setPosition(width - xOffset, yOffset);
     append(&authorText);
 
-    authorValueText.setTextf("%s", metaXml.GetCoder());
+    authorValueText.setText(metaXml.GetCoder());
     authorValueText.setAlignment(ALIGN_LEFT | ALIGN_MIDDLE);
     authorValueText.setPosition(width - xOffset + 100, yOffset);
-    authorValueText.setMaxWidth(xOffset - 150, GuiText::DOTTED);
+    authorValueText.setMaxWidth(xOffset - 150);
     append(&authorValueText);
     yOffset -= 50;
 
     descriptionText.setText(metaXml.GetLongDescription());
     descriptionText.setAlignment(ALIGN_LEFT | ALIGN_TOP);
     descriptionText.setPosition(100, -250);
-    descriptionText.setMaxWidth(width - 200, GuiText::WRAP);
+    descriptionText.setMaxWidth(width - 200);
     append(&descriptionText);
 
     scaleFactor = 1.0f;
@@ -148,33 +147,34 @@ HomebrewLaunchWindow::~HomebrewLaunchWindow() {
 void HomebrewLaunchWindow::OnOpenEffectFinish(GuiElement *element) {
     //! once the menu is open reset its state and allow it to be "clicked/hold"
     element->effectFinished.disconnect(this);
-    element->clearState(GuiElement::STATE_DISABLED);
+    element->clearState(GuiElement::STATE_DISABLED, -1);
 }
 
 void HomebrewLaunchWindow::OnCloseEffectFinish(GuiElement *element) {
     //! remove element from draw list and push to delete queue
     remove(element);
-    AsyncDeleter::pushForDelete(element);
+    // AsyncDeleter::pushForDelete(element);
 
-    backBtn.clearState(GuiElement::STATE_DISABLED);
-    loadBtn.clearState(GuiElement::STATE_DISABLED);
+    backBtn.clearState(GuiElement::STATE_DISABLED, -1);
+    loadBtn.clearState(GuiElement::STATE_DISABLED, -1);
 }
 
 void HomebrewLaunchWindow::OnFileLoadFinish(GuiElement *element, const std::string & filepath, int result) {
-    element->setState(GuiElement::STATE_DISABLED);
+    element->setState(GuiElement::STATE_DISABLED, -1);
     //element->setEffect(EFFECT_FADE, -10, 0);
     element->effectFinished.connect(this, &HomebrewLaunchWindow::OnCloseEffectFinish);
 
     if(result > 0) {
-        SYSRelaunchTitle(0,NULL);
+        // TODO: unload?
+        // SYSRelaunchTitle(0,NULL);
         //Application::instance()->quit(EXIT_SUCCESS);
     }
 }
 
 
 void HomebrewLaunchWindow::OnLoadButtonClick(GuiButton *button, const GuiController *controller, GuiTrigger *trigger) {
-    backBtn.setState(GuiElement::STATE_DISABLED);
-    loadBtn.setState(GuiElement::STATE_DISABLED);
+    backBtn.setState(GuiElement::STATE_DISABLED, -1);
+    loadBtn.setState(GuiElement::STATE_DISABLED, -1);
 
     HomebrewLoader * loader = HomebrewLoader::loadToMemoryAsync(homebrewLaunchPath);
     loader->setEffect(EFFECT_FADE, 15, 255);

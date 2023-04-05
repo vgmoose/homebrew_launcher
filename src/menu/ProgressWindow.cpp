@@ -16,18 +16,24 @@
  ****************************************************************************/
 #include "ProgressWindow.h"
 #include "resources/Resources.h"
-#include <gui/video/CVideo.h>
+
+#define sdlWhite SDL_Color { 255, 255, 255, 255 }
 
 ProgressWindow::ProgressWindow(const std::string & title)
     : GuiFrame(0, 0)
     , bgImageData(Resources::GetImageData("progressWindow.png"))
     , bgImage(bgImageData)
-    , progressImageBlack(bgImage.getWidth(), bgImage.getHeight()/2, (GX2Color) {
-    0, 0, 0, 255
-})
-, progressImageColored(bgImage.getWidth(), bgImage.getHeight()/2, (GX2Color) {
-    0, 0, 0, 255
-}) {
+    , progressImageBlack((SDL_Color) {
+        0, 0, 0, 255
+    }, bgImage.getWidth(), bgImage.getHeight()/2)
+    , progressImageColored((SDL_Color) {
+        0, 0, 0, 255
+    }, bgImage.getWidth(), bgImage.getHeight()/2),
+    titleText(title, 24, (SDL_Color) {
+        0, 0, 0, 255
+    })
+{
+
     titleChanged = false;
     currentTitle = title;
     width = bgImage.getWidth();
@@ -38,24 +44,24 @@ ProgressWindow::ProgressWindow(const std::string & title)
     append(&bgImage);
 
     progressImageColored.setAlignment(ALIGN_TOP_LEFT);
-    progressImageColored.setImageColor((GX2Color) {
-        42, 159, 217, 255
-    }, 0);
-    progressImageColored.setImageColor((GX2Color) {
-        42, 159, 217, 255
-    }, 1);
-    progressImageColored.setImageColor((GX2Color) {
-        13, 104, 133, 255
-    }, 2);
-    progressImageColored.setImageColor((GX2Color) {
-        13, 104, 133, 255
-    }, 3);
+    // progressImageColored.setImageColor((SDL_Color) {
+    //     42, 159, 217, 255
+    // }, 0);
+    // progressImageColored.setImageColor((SDL_Color) {
+    //     42, 159, 217, 255
+    // }, 1);
+    // progressImageColored.setImageColor((SDL_Color) {
+    //     13, 104, 133, 255
+    // }, 2);
+    // progressImageColored.setImageColor((SDL_Color) {
+    //     13, 104, 133, 255
+    // }, 3);
 
-    titleText.setColor(glm::vec4(1.0f, 1.0f, 1.0f, 1.0f));
+    titleText.setColor(sdlWhite);
     titleText.setFontSize(36);
     titleText.setAlignment(ALIGN_LEFT | ALIGN_MIDDLE);
     titleText.setPosition(50, 0);
-    titleText.setBlurGlowColor(5.0f, glm::vec4(0.0, 0.0, 0.0f, 1.0f));
+    // titleText.setBlurGlowColor(5.0f, sdlWhite);
     titleText.setText(currentTitle.c_str());
     append(&titleText);
 
@@ -70,22 +76,22 @@ ProgressWindow::~ProgressWindow() {
 }
 
 void ProgressWindow::setTitle(const std::string & title) {
-    titleMutex.lock();
+    // titleMutex.lock();
     currentTitle = title;
     titleChanged = true;
-    titleMutex.unlock();
+    // titleMutex.unlock();
 }
 
 void ProgressWindow::setProgress(float percent) {
     progressImageColored.setSize(percent * 0.01f * progressImageBlack.getWidth(), progressImageColored.getHeight());
 }
 
-void ProgressWindow::draw(CVideo * v) {
+void ProgressWindow::draw(Renderer * v) {
     if(titleChanged) {
-        titleMutex.lock();
+        // titleMutex.lock();
         titleChanged = false;
         titleText.setText(currentTitle.c_str());
-        titleMutex.unlock();
+        // titleMutex.unlock();
     }
 
     GuiFrame::draw(v);

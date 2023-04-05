@@ -2,21 +2,20 @@
 #define RECOURCES_H_
 
 #include <map>
+#include <string>
 #include <stdint.h>
-
-//! forward declaration
-class GuiImageData;
-class GuiSound;
+#include <gui/GuiTextureData.h>
+#include <gui/GuiSound.h>
 
 class Resources {
 public:
     static void Clear();
     static bool LoadFiles(const char * path);
-    static const uint8_t * GetFile(const char * filename);
+    static uint8_t * GetFile(const char * filename);
     static uint32_t GetFileSize(const char * filename);
 
-    static GuiImageData * GetImageData(const char * filename);
-    static void RemoveImageData(GuiImageData * image);
+    static GuiTextureData * GetImageData(const char * filename);
+    static void RemoveImageData(GuiTextureData * image);
 
     static GuiSound * GetSound(const char * filename);
     static void RemoveSound(GuiSound * sound);
@@ -26,7 +25,7 @@ private:
     Resources() {}
     ~Resources() {}
 
-    std::map<std::string, std::pair<unsigned int, GuiImageData *> > imageDataMap;
+    std::map<std::string, std::pair<unsigned int, GuiTextureData *> > imageDataMap;
     std::map<std::string, std::pair<unsigned int, GuiSound *> > soundDataMap;
 };
 

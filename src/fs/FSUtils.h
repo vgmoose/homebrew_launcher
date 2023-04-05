@@ -1,8 +1,6 @@
 #ifndef __FS_UTILS_H_
 #define __FS_UTILS_H_
 
-#include <wut_types.h>
-
 class FSUtils {
 public:
     static int32_t LoadFileToMem(const char *filepath, uint8_t **inbuffer, uint32_t *size);
