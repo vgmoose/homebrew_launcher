@@ -38,12 +38,9 @@ uint32_t Resources::GetFileSize(const char * filename) {
 }
 
 GuiTextureData * Resources::GetImageData(const char * filename) {
-
-    return NULL;
+    return new GuiTextureData(filename);
 }
 
 GuiSound * Resources::GetSound(const char * filename) {
-
-
-    return NULL;
+    return new GuiSound(filename);
 }

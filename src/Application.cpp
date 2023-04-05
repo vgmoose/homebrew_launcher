@@ -124,7 +124,7 @@ bool Application::procUI(void) {
     switch(ProcUIProcessMessages(true)) {
     case PROCUI_STATUS_EXITING: {
         printf("PROCUI_STATUS_EXITING\n");
-        exitCode = EXIT_SUCCESS;
+        exitCode = 0;
         exitApplication = true;
         break;
     }
@@ -225,7 +225,6 @@ void Application::executeThread(void) {
         }
 
         for(int i = 0; i < 5; i++) {
-            // TODO: oob check
             if(controller[i]->update(&event, getTvWidth(), getTvHeight()) == false)
                 continue;
 

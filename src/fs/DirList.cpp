@@ -73,9 +73,9 @@ bool DirList::LoadPath(const std::string & folder, const char *filter, uint32_t 
         folderpath.erase(length-1);
 
     //! add root slash if missing
-    if(folderpath.find('/') == std::string::npos) {
-        folderpath += '/';
-    }
+    // if(folderpath.find('/') == std::string::npos) {
+    //     folderpath += '/';
+    // }
 
     return InternalLoadPath(folderpath);
 }

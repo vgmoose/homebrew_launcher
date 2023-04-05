@@ -64,8 +64,8 @@ HomebrewLaunchWindow::HomebrewLaunchWindow(const std::string & launchPath, GuiTe
     int yOffset = height * 0.5f - 75.0f;
 
     const char *cpName = xmlReadSuccess ? metaXml.GetName() : launchPath.c_str();
-    if(strncmp(cpName, "fs:/wiiu/apps/", strlen("fs:/wiiu/apps/")) == 0)
-        cpName += strlen("fs:/wiiu/apps/");
+    if(strncmp(cpName, APPS_ROOT, strlen(APPS_ROOT)) == 0)
+        cpName += strlen(APPS_ROOT);
 
     titleText.setText(cpName);
     titleText.setAlignment(ALIGN_CENTER | ALIGN_MIDDLE);

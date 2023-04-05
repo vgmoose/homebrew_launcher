@@ -4,6 +4,7 @@
 #ifdef PC
 #define ASSET_ROOT "./assets/"
 #else
+// todo: replace with wuhb assets? or romfs/ramfs
 #define ASSET_ROOT "/vol/external01/wiiu/apps/homebrew_launcher/assets/"
 #endif
 

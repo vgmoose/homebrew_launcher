@@ -50,8 +50,10 @@ HomebrewWindow::HomebrewWindow(int w, int h)
     targetLeftPosition = 0;
     currentLeftPosition = 0;
     listOffset = 0;
+    printf("We shall list the apps\n");
 
-    DirList dirList("fs:/vol/external01/wiiu/apps", ".rpx", DirList::Files | DirList::CheckSubfolders, 1);
+    DirList dirList(APPS_ROOT, ".rpx", DirList::Files | DirList::CheckSubfolders, 1);
+    // TODO: find wuhbs and elfs (show unsupported)
 
     dirList.SortList();
 
@@ -61,6 +63,9 @@ HomebrewWindow::HomebrewWindow(int w, int h)
             continue;
         //! skip our own application in the listing
         if(strcasecmp(dirList.GetFilename(i), "homebrew_launcher.rpx") == 0)
+            continue;
+        //! skip our own application in the listing
+        if(strcasecmp(dirList.GetFilename(i), "homebrew_launcher.wuhb") == 0)
             continue;
 
 
@@ -106,8 +111,8 @@ HomebrewWindow::HomebrewWindow(int w, int h)
         const char *cpName = xmlReadSuccess ? metaXml.GetName() : homebrewButtons[idx].execPath.c_str();
         const char *cpDescription = xmlReadSuccess ? metaXml.GetShortDescription() : "";
 
-        if(strncmp(cpName, "fs:/vol/external01/wiiu/apps/", strlen("fs:/vol/external01/wiiu/apps/")) == 0)
-            cpName += strlen("fs:/vol/external01/wiiu/apps/");
+        if(strncmp(cpName, APPS_ROOT, strlen(APPS_ROOT)) == 0)
+            cpName += strlen(APPS_ROOT);
 
         homebrewButtons[idx].nameLabel = new GuiText(cpName, 32, sdlWhite);
         homebrewButtons[idx].nameLabel->setAlignment(ALIGN_LEFT | ALIGN_MIDDLE);
@@ -135,6 +140,8 @@ HomebrewWindow::HomebrewWindow(int w, int h)
         homebrewButtons[idx].button->clicked.connect(this, &HomebrewWindow::OnHomebrewButtonClick);
 
         append(homebrewButtons[idx].button);
+
+        printf("Added homebrew: %s\n", homebrewButtons[idx].execPath.c_str());
     }
 
 
