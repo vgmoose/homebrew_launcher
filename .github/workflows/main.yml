@@ -1,0 +1,38 @@
+name: Build Homebrew Launcher
+
+on:
+  push:
+    branches:
+      - main
+      - master
+      - sdl-compat
+  pull_request:
+    branches:
+      - main
+      - master
+
+jobs:
+  all:
+    runs-on: ubuntu-latest
+    container:
+      image: Dockerfile
+    strategy:
+      matrix:
+        include:
+          - platform: pc
+            ext: exe
+          # - platform: wiiu
+          #   ext: wuhb
+          # - platform: wiiu
+          #   ext: rpx
+    steps:
+    - uses: actions/checkout@main
+      with:
+        submodules: recursive
+    - name: Build ${{ matrix.platform }}
+        run: make
+      # run: make ${{ matrix.platform }}
+    - uses: actions/upload-artifact@v3
+      with:
+        name: homebrew_launcher..${{ matrix.ext }}
+        path: /__w/homebrew_launcher/homebrew_launcher/homebrew_launcher.${{ matrix.ext }}

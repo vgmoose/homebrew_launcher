@@ -36,6 +36,16 @@ Clone the respository recursively with `git clone --recursive`, and run `make`. 
 
 After, both homebrew_launcher.wuhb and homebrew_launcher.rpx should be in the current directory. (Or homebrew_launcher.exe for PC).
 
+### Using docker
+To build with docker use the following commands in bash:
+
+```
+docker build . -t homebrew_launcher_builder
+docker run -v $(pwd):/project -it homebrew_launcher_builder
+```
+
+This will create both the wuhb and rpx, and also an executable for x86_64 linux.
+
 ## Building an application for the Homebrew Launcher 
 For an example on how to build an application for the HBL check out the [wut samples](https://github.com/decaf-emu/wut/tree/master/samples).
 
