@@ -5,6 +5,7 @@
 #include <gui/GuiController.h>
 #include <gui/input/SDLControllerWiiUProContoller.h>
 #include <gui/input/SDLControllerWiiUGamepad.h>
+#include <gui/input/SDLControllerMouse.h>
 #include <gui/system/SDLSystem.h>
 
 // #include <gui/sounds/SoundHandler.hpp>
@@ -172,12 +173,15 @@ int getTvHeight() {
 }
 
 void Application::initElements() {
-    // TODO: handle wiiu controls better?
-    controller[0] = new SDLControllerWiiUGamepad(GuiTrigger::CHANNEL_1);
+    // TODO: handle all controllers better with ControllerManager
+    // controller[0] = new SDLControllerWiiUGamepad(GuiTrigger::CHANNEL_1);
+    controller[0] = new SDLControllerMouse(GuiTrigger::CHANNEL_1);
     controller[1] = new SDLControllerWiiUProContoller(GuiTrigger::CHANNEL_2);
     controller[2] = new SDLControllerWiiUProContoller(GuiTrigger::CHANNEL_3);
     controller[3] = new SDLControllerWiiUProContoller(GuiTrigger::CHANNEL_4);
     controller[4] = new SDLControllerWiiUProContoller(GuiTrigger::CHANNEL_5);
+
+    // controller[0]->before(); // ControllerManager should handle this, mouse inputs always valid
 
     //! create bgMusic
     bgMusic = new GuiSound(
@@ -209,6 +213,7 @@ void Application::executeThread(void) {
         printf("Initialize main window\n");
         mainWindow = new MainWindow(getTvWidth(), getTvHeight());
     }
+    int lastFrameTime = 0;
 
     // main loop
     while(!exitApplication) {
@@ -225,16 +230,34 @@ void Application::executeThread(void) {
         }
 
         for(int i = 0; i < 5; i++) {
-            if(controller[i]->update(&event, getTvWidth(), getTvHeight()) == false)
-                continue;
+            // TODO: out of bounds check (on PC, wiiu controllers return false here in libgui)
+            controller[i]->update(&event, getTvWidth(), getTvHeight());
+
+            if (i == 0) {
+                // update the mouse validity field
+                controller[i]->data.validPointer = controller[i]->data.touched;
+            }
 
             //! update controller states
             mainWindow->update(controller[i]);
         }
 
+#ifdef PC
+        // don't call RenderPresent this too frequently, (need 16ms to pass)
+        // TODO: track if an element needs to update, and only render if it does
+
+        int now = SDL_GetTicks();
+        int diff = now - lastFrameTime;
+
+        if (diff >= 16) {
+            SDL_RenderPresent(mainRenderer->getRenderer());
+            lastFrameTime = now;
+        }
+#endif
+
         //! start rendering DRC
         // video->prepareDrcRendering();
-        mainWindow->drawDrc(video);
+        // mainWindow->drawDrc(video);
         // video->drcDrawDone();
 
         //! start rendering TV
@@ -250,6 +273,7 @@ void Application::executeThread(void) {
 
         //! as last point update the effects as it can drop elements
         mainWindow->updateEffects();
+
 
         // video->waitForVSync();
 
